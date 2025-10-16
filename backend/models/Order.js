@@ -90,8 +90,18 @@ const orderSchema = new mongoose.Schema({
     method: {
       type: String,
       required: true,
-      enum: ['card', 'paypal', 'cash_on_delivery']
+      enum: ['card', 'paypal', 'cash_on_delivery', 'razorpay']
     }
+  },
+  // Razorpay specific fields
+  razorpayOrderId: { 
+    type: String 
+  },
+  razorpayPaymentId: { 
+    type: String 
+  },
+  razorpaySignature: { 
+    type: String 
   },
   itemsPrice: {
     type: Number,

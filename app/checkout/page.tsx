@@ -2,14 +2,21 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import RazorpayPayment from '../components/RazorpayPayment'
+import { useRouter } from 'next/navigation'
 
 export default function Checkout() {
+  const router = useRouter()
+  const [paymentMethod, setPaymentMethod] = useState('card')
+  const [paymentStatus, setPaymentStatus] = useState('')
   const [formData, setFormData] = useState({
     fullName: '',
     address: '',
     city: '',
     postalCode: '',
-    country: 'United States',
+    country: 'India',
+    email: '',
+    phone: '',
     cardNumber: '',
     expiryDate: '',
     cvv: ''
@@ -169,35 +176,105 @@ export default function Checkout() {
               </div>
             </div>
 
-            {/* Payment Information */}
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Payment Information</h2>
+            {/* Contact Information */}
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">Contact Information</h2>
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="cardNumber" className="block text-sm font-medium text-gray-700 mb-2">
-                    Card Number
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                    Email
                   </label>
                   <input
-                    type="text"
-                    name="cardNumber"
-                    id="cardNumber"
-                    value={formData.cardNumber}
+                    type="email"
+                    name="email"
+                    id="email"
+                    value={formData.email}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    placeholder="Enter your card number"
+                    placeholder="Enter your email"
                   />
                 </div>
+                <div>
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                    Phone
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    id="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    placeholder="Enter your phone number"
+                  />
+                </div>
+              </div>
+            </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Payment Information */}
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">Payment Method</h2>
+              
+              {/* Payment Method Selection */}
+              <div className="mb-6">
+                <div className="flex space-x-4">
+                  <div 
+                    className={`border rounded-md p-4 flex items-center cursor-pointer ${paymentMethod === 'card' ? 'border-orange-500 bg-orange-50' : 'border-gray-300'}`}
+                    onClick={() => setPaymentMethod('card')}
+                  >
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      checked={paymentMethod === 'card'}
+                      onChange={() => setPaymentMethod('card')}
+                      className="mr-2"
+                    />
+                    <span>Credit/Debit Card</span>
+                  </div>
+                  <div 
+                    className={`border rounded-md p-4 flex items-center cursor-pointer ${paymentMethod === 'razorpay' ? 'border-orange-500 bg-orange-50' : 'border-gray-300'}`}
+                    onClick={() => setPaymentMethod('razorpay')}
+                  >
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      checked={paymentMethod === 'razorpay'}
+                      onChange={() => setPaymentMethod('razorpay')}
+                      className="mr-2"
+                    />
+                    <span>Razorpay</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Credit Card Form */}
+              {paymentMethod === 'card' && (
+                <div className="space-y-4">
                   <div>
-                    <label htmlFor="expiryDate" className="block text-sm font-medium text-gray-700 mb-2">
-                      Expiry Date
+                    <label htmlFor="cardNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                      Card Number
                     </label>
                     <input
                       type="text"
-                      name="expiryDate"
-                      id="expiryDate"
-                      value={formData.expiryDate}
+                      name="cardNumber"
+                      id="cardNumber"
+                      value={formData.cardNumber}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      placeholder="Enter your card number"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="expiryDate" className="block text-sm font-medium text-gray-700 mb-2">
+                        Expiry Date
+                      </label>
+                      <input
+                        type="text"
+                        name="expiryDate"
+                        id="expiryDate"
+                        value={formData.expiryDate}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                       placeholder="MM/YY"
@@ -219,7 +296,49 @@ export default function Checkout() {
                     />
                   </div>
                 </div>
+                
+                <button
+                  type="button"
+                  className="w-full mt-6 bg-orange-500 hover:bg-orange-600 text-white py-3 px-4 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                >
+                  Pay with Card
+                </button>
               </div>
+              )}
+              
+              {/* Razorpay Payment */}
+              {paymentMethod === 'razorpay' && (
+                <div>
+                  {paymentStatus && (
+                    <div className={`mb-4 p-4 rounded-md ${paymentStatus === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                      {paymentStatus === 'success' 
+                        ? 'Payment successful! Redirecting to order confirmation...' 
+                        : 'Payment failed. Please try again.'}
+                    </div>
+                  )}
+                  
+                  <RazorpayPayment 
+                    amount={total}
+                    customerInfo={{
+                      name: formData.fullName,
+                      email: formData.email,
+                      phone: formData.phone
+                    }}
+                    onSuccess={(paymentData) => {
+                      setPaymentStatus('success');
+                      console.log('Payment successful:', paymentData);
+                      // Redirect to success page after a short delay
+                      setTimeout(() => {
+                        router.push('/payment-success?orderId=' + paymentData.orderId);
+                      }, 2000);
+                    }}
+                    onError={(error) => {
+                      setPaymentStatus('failed');
+                      console.error('Payment failed:', error);
+                    }}
+                  />
+                </div>
+              )}
             </div>
           </div>
 
@@ -239,7 +358,7 @@ export default function Checkout() {
                       <h3 className="text-sm font-medium text-gray-900">{item.name}</h3>
                       <p className="text-sm text-gray-500">Size {item.size}</p>
                     </div>
-                    <p className="text-sm font-medium text-gray-900">${item.price.toFixed(2)}</p>
+                    <p className="text-sm font-medium text-gray-900">₹{item.price.toFixed(2)}</p>
                   </div>
                 ))}
               </div>
@@ -248,30 +367,32 @@ export default function Checkout() {
               <div className="space-y-2 mb-6">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="text-gray-900">${subtotal.toFixed(2)}</span>
+                  <span className="text-gray-900">₹{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Shipping</span>
-                  <span className="text-gray-900">${shipping.toFixed(2)}</span>
+                  <span className="text-gray-900">₹{shipping.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Taxes</span>
-                  <span className="text-gray-900">${taxes.toFixed(2)}</span>
+                  <span className="text-gray-900">₹{taxes.toFixed(2)}</span>
                 </div>
                 <hr className="my-2" />
                 <div className="flex justify-between text-lg font-semibold">
                   <span className="text-gray-900">Total</span>
-                  <span className="text-gray-900">${total.toFixed(2)}</span>
+                  <span className="text-gray-900">₹{total.toFixed(2)}</span>
                 </div>
               </div>
 
-              {/* Complete Purchase Button */}
-              <Link
-                href="/payment-success"
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-4 px-6 rounded-lg text-center block transition-colors duration-200"
-              >
-                Complete Purchase
-              </Link>
+              {/* Complete Purchase Button (only shown for card payment) */}
+              {paymentMethod === 'card' && (
+                <Link
+                  href="/payment-success"
+                  className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-4 px-6 rounded-lg text-center block transition-colors duration-200"
+                >
+                  Complete Purchase
+                </Link>
+              )}
             </div>
           </div>
         </div>

@@ -16,9 +16,10 @@ if (!process.env.JWT_COOKIE_EXPIRE) {
 // Import routes
 const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/products');
-const orderRoutes = require('./routes/orders');
 const cartRoutes = require('./routes/cart');
+const orderRoutes = require('./routes/orders');
 const wishlistRoutes = require('./routes/wishlist');
+const razorpayRoutes = require('./routes/razorpay');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -69,12 +70,13 @@ mongoose.connect(process.env.MONGO_URI, {
 .then(() => console.log('MongoDB connected successfully'))
 .catch(err => console.log('MongoDB connection error:', err));
 
-// Routes
+// Mount routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
-app.use('/api/orders', orderRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/orders', orderRoutes);
 app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/payment', razorpayRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {
