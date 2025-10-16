@@ -11,9 +11,14 @@ interface ProductData {
   name: string;
   description: string;
   price: number;
+  originalPrice?: number;
+  discount?: number;
   category: string;
+  subcategory?: string;
+  brand?: string;
   stock: number;
   images: string[];
+  isActive?: boolean;
 }
 
 export default function ProductForm({ productId }: ProductFormProps) {
@@ -22,6 +27,8 @@ export default function ProductForm({ productId }: ProductFormProps) {
   const [error, setError] = useState('');
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const CATEGORY_OPTIONS = ['men', 'women', 'kids', 'accessories', 'sale'];
+  const API_BASE: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
   
   const [formData, setFormData] = useState<ProductData>({
     name: '',
@@ -41,12 +48,24 @@ export default function ProductForm({ productId }: ProductFormProps) {
   const fetchProduct = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/products/${productId}`, {
+      const response = await fetch(`${API_BASE}/products/${productId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      const data = await response.json();
-      setFormData(data);
-      setImageUrls(data.images);
+      const json = await response.json();
+      const product = json?.data ?? json;
+      setFormData({
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        originalPrice: product.originalPrice,
+        discount: product.discount,
+        category: product.category,
+        subcategory: product.subcategory,
+        brand: product.brand,
+        stock: product.stock,
+        images: (product.images || []).map((img: any) => img.url)
+      });
+      setImageUrls((product.images || []).map((img: any) => img.url));
     } catch (error) {
       setError('Failed to fetch product');
     }
@@ -99,29 +118,48 @@ export default function ProductForm({ productId }: ProductFormProps) {
 
     try {
       const token = localStorage.getItem('token');
-      let uploadedImageUrls = [];
 
-      if (imageFiles.length > 0) {
-        uploadedImageUrls = await uploadImages();
-      }
-
-      const productData = {
-        ...formData,
-        images: [...formData.images, ...uploadedImageUrls]
-      };
-
+      const hasNewFiles = imageFiles.length > 0;
       const url = productId
-        ? `http://localhost:5000/api/products/${productId}`
-        : 'http://localhost:5000/api/products';
+        ? `${API_BASE}/products/${productId}`
+        : `${API_BASE}/products`;
 
-      const response = await fetch(url, {
-        method: productId ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(productData)
-      });
+      let response: Response;
+
+      if (hasNewFiles) {
+        // Send multipart/form-data directly to backend which will upload to Cloudinary
+        const form = new FormData();
+        form.append('name', formData.name);
+        form.append('description', formData.description);
+        form.append('price', String(formData.price));
+        if (formData.originalPrice != null) form.append('originalPrice', String(formData.originalPrice));
+        if (formData.discount != null) form.append('discount', String(formData.discount));
+        form.append('category', formData.category);
+        if (formData.subcategory) form.append('subcategory', formData.subcategory);
+        if (formData.brand) form.append('brand', formData.brand);
+        form.append('stock', String(formData.stock));
+        formData.images.forEach((url) => form.append('images', url));
+        imageFiles.forEach((file) => form.append('images', file));
+
+        response = await fetch(url, {
+          method: productId ? 'PUT' : 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: form
+        });
+      } else {
+        // JSON update when not adding new files
+        const payload = {
+          ...formData,
+        };
+        response = await fetch(url, {
+          method: productId ? 'PUT' : 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+      }
 
       if (!response.ok) throw new Error('Failed to save product');
 
@@ -200,15 +238,19 @@ export default function ProductForm({ productId }: ProductFormProps) {
 
       <div>
         <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category</label>
-        <input
-          type="text"
+        <select
           name="category"
           id="category"
           required
           value={formData.category}
-          onChange={handleInputChange}
+          onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
           className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-        />
+        >
+          <option value="" disabled>Select a category</option>
+          {CATEGORY_OPTIONS.map((c) => (
+            <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
+          ))}
+        </select>
       </div>
 
       <div>

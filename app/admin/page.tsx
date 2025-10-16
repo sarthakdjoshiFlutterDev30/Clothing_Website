@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { formatINR } from '../utils/auth';
 import Link from 'next/link';
 
 interface DashboardStats {
@@ -41,10 +42,10 @@ export default function AdminDashboard() {
         ]);
 
         setStats({
-          totalProducts: productsData.length,
-          totalOrders: ordersData.length,
-          totalUsers: usersData.length,
-          recentOrders: ordersData.slice(0, 5)
+          totalProducts: (productsData?.data ?? productsData)?.length ?? 0,
+          totalOrders: (ordersData?.data ?? ordersData)?.length ?? 0,
+          totalUsers: (usersData?.data ?? usersData)?.length ?? 0,
+          recentOrders: (ordersData?.data ?? ordersData)?.slice(0, 5) ?? []
         });
       } catch (error) {
         console.error('Error fetching dashboard stats:', error);
@@ -150,7 +151,7 @@ export default function AdminDashboard() {
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order._id}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{order.user?.name || 'N/A'}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.status}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.total}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatINR(order.totalPrice ?? order.total)}</td>
                           </tr>
                         ))}
                       </tbody>

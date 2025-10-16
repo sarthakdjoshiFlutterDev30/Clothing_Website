@@ -18,12 +18,15 @@ export default function SalePage() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const API_BASE: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setLoading(true)
-        const res = await fetch('http://localhost:5000/api/products')
+        const res = await fetch(`${API_BASE}/products?_t=${Date.now()}` , {
+          cache: 'no-store'
+        })
         const json = await res.json()
         if (!res.ok) {
           setError(json.message || 'Failed to load sale products')

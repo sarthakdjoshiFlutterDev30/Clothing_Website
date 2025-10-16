@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import AddToCartButton from '../components/AddToCartButton'
+import { formatINR } from '../utils/auth'
 
 interface Product {
   _id: string
@@ -31,19 +32,27 @@ export default function Collections() {
   const [priceRange, setPriceRange] = useState([0, 500])
   const [selectedSize, setSelectedSize] = useState('')
   const [selectedColor, setSelectedColor] = useState('')
+  const API_BASE: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
 
   useEffect(() => {
     fetchProducts()
-  }, [])
+  }, [selectedCategory])
 
   const fetchProducts = async () => {
     try {
       setLoading(true)
-      const response = await fetch('http://localhost:5000/api/products')
+      const params = new URLSearchParams()
+      if (selectedCategory) params.append('category', selectedCategory.toLowerCase())
+      // Bust caches to ensure we always see fresh data
+      params.append('_t', String(Date.now()))
+      const response = await fetch(`${API_BASE}/products?${params.toString()}`, {
+        cache: 'no-store'
+      })
       
       if (response.ok) {
         const data = await response.json()
-        setProducts(data.data)
+        const list = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : [])
+        setProducts(list)
       } else {
         setError('Failed to fetch products')
       }
@@ -55,7 +64,6 @@ export default function Collections() {
   }
 
   const filteredProducts = products.filter(product => {
-    if (selectedCategory && product.category !== selectedCategory) return false
     if (product.price < priceRange[0] || product.price > priceRange[1]) return false
     if (selectedSize && !product.sizes.some(s => s.size === selectedSize)) return false
     if (selectedColor && !product.colors.some(c => c.name === selectedColor)) return false
@@ -249,9 +257,9 @@ export default function Collections() {
                       </div>
                       <div className="flex justify-between items-center">
                         <div>
-                          <span className="text-xl font-bold text-gray-900">${product.price}</span>
+                          <span className="text-xl font-bold text-gray-900">{formatINR(product.price)}</span>
                           {product.discount > 0 && (
-                            <span className="text-sm text-gray-500 line-through ml-2">${product.originalPrice}</span>
+                            <span className="text-sm text-gray-500 line-through ml-2">{formatINR(product.originalPrice)}</span>
                           )}
                         </div>
                         <AddToCartButton

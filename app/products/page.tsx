@@ -26,6 +26,7 @@ export default function Products() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
+  const API_BASE: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
 
   useEffect(() => {
     fetchProducts()
@@ -34,7 +35,10 @@ export default function Products() {
   const fetchProducts = async () => {
     try {
       setLoading(true)
-      const response = await fetch('http://localhost:5000/api/products')
+      const noCacheUrl = `${API_BASE}/products?_t=${Date.now()}`
+      const response = await fetch(noCacheUrl, {
+        cache: 'no-store'
+      })
       
       if (response.ok) {
         const data = await response.json()

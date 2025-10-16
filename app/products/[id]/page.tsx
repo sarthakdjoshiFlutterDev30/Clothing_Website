@@ -29,6 +29,7 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [selectedImage, setSelectedImage] = useState(0)
+  const API_BASE: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
 
   useEffect(() => {
     fetchProduct()
@@ -37,7 +38,7 @@ export default function ProductDetail() {
   const fetchProduct = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`http://localhost:5000/api/products/${params.id}`)
+      const response = await fetch(`${API_BASE}/products/${params.id}`)
       
       if (response.ok) {
         const data = await response.json()

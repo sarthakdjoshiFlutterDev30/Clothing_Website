@@ -1,20 +1,23 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { authFetch } from '../../utils/staticAuth';
+import { formatINR } from '../../utils/auth';
+interface OrderItem {
+  _id?: string;
+  product: string;
+  name: string;
+  price: number;
+  quantity: number;
+  size?: string;
+  color?: string;
+  image?: string;
+}
+
 interface Order {
   _id: string;
-  user: string; // user ID reference
-  orderItems: Array<{
-    _id: string;
-    product: string; // product ID
-    name: string;
-    price: number;
-    quantity: number;
-    size?: string;
-    color?: string;
-    image?: string;
-  }>;
+  user: string | { _id: string; name?: string; email?: string };
+  orderItems: OrderItem[];
   shippingInfo: {
     firstName: string;
     lastName: string;
@@ -32,12 +35,12 @@ interface Order {
     id: string;
     status: string;
     method: string;
-    itemsPrice: number;
-    taxPrice: number;
-    shippingPrice: number;
-    totalPrice: number;
   };
-  orderStatus: string;
+  itemsPrice: number;
+  taxPrice: number;
+  shippingPrice: number;
+  totalPrice: number;
+  orderStatus: 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled' | 'Returned';
   createdAt: string;
   updatedAt: string;
 }
@@ -47,18 +50,21 @@ export default function AdminOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+  const API_BASE: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  type OrderStatus = Order['orderStatus'];
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await authFetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/orders`);
+        const response = await authFetch(`${API_BASE}/orders`);
 
         if (!response.ok) {
           throw new Error('Failed to fetch orders');
         }
 
-        const data = await response.json();
-        setOrders(data);
+        const json: any = await response.json();
+        const list: Order[] = Array.isArray(json?.data) ? json.data : (Array.isArray(json) ? json : []);
+        setOrders(list);
       } catch (err: any) {
         setError(err.message || 'An error occurred while fetching orders');
       } finally {
@@ -71,23 +77,29 @@ export default function AdminOrders() {
 
   const handleStatusChange = async (orderId: string, newStatus: string) => {
     try {
-      const response = await authFetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/orders/${orderId}/status`, {
-        method: 'PATCH',
-        body: JSON.stringify({ status: newStatus })
+      const nextStatus = capitalize(newStatus) as OrderStatus;
+      const response = await authFetch(`${API_BASE}/orders/${orderId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ orderStatus: nextStatus })
       });
 
       if (!response.ok) {
         throw new Error('Failed to update order status');
       }
 
-      // Update the local state
-      setOrders(orders.map(order => 
-        order._id === orderId ? { ...order, status: newStatus } : order
-      ));
+      // Update the local state with correct typing for 'order'
+      setOrders(orders.map((order: Order): Order => (
+        order._id === orderId ? { ...order, orderStatus: nextStatus } : order
+      )));
     } catch (err: any) {
-      setError(err.message || 'An error occurred while updating order status');
+      setError(err?.message || 'An error occurred while updating order status');
     }
   };
+
+  function capitalize(value: string) {
+    if (!value) return value;
+    return value.charAt(0).toUpperCase() + value.slice(1);
+  }
 
   if (loading) return <div className="text-center py-10">Loading...</div>;
   if (error) return <div className="text-center py-10 text-red-500">{error}</div>;
@@ -113,36 +125,35 @@ export default function AdminOrders() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {orders.length > 0 ? (
-                    orders.map((order) => (
+                    orders.map((order: Order) => (
                       <tr key={order._id}>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {order._id}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {order.orderItems.map(item => item.name).join(', ')}
+                          {order.orderItems.map((item: OrderItem) => item.name).join(', ')}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {new Date(order.createdAt).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          ${order.paymentInfo.totalPrice.toFixed(2)}
+                          {formatINR(order.totalPrice)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                            ${order.paymentInfo.status === 'delivered' ? 'bg-green-100 text-green-800' : 
-                              order.paymentInfo.status === 'shipped' ? 'bg-blue-100 text-blue-800' : 
-                              order.paymentInfo.status === 'processing' ? 'bg-yellow-100 text-yellow-800' : 
+                            ${order.orderStatus === 'Delivered' ? 'bg-green-100 text-green-800' : 
+                              order.orderStatus === 'Shipped' ? 'bg-blue-100 text-blue-800' : 
+                              order.orderStatus === 'Processing' ? 'bg-yellow-100 text-yellow-800' : 
                               'bg-gray-100 text-gray-800'}`}>
-                            {order.paymentInfo.status.charAt(0).toUpperCase() + order.paymentInfo.status.slice(1)}
+                            {order.orderStatus}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <select
                             className="block w-full pl-3 pr-10 py-1 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                            value={order.paymentInfo.status}
-                            onChange={(e) => handleStatusChange(order._id, e.target.value)}
+                            value={order.orderStatus.toLowerCase()}
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleStatusChange(order._id, e.target.value)}
                           >
-                            <option value="pending">Pending</option>
                             <option value="processing">Processing</option>
                             <option value="shipped">Shipped</option>
                             <option value="delivered">Delivered</option>

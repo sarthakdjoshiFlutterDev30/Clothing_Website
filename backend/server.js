@@ -19,6 +19,7 @@ const productRoutes = require('./routes/products');
 const cartRoutes = require('./routes/cart');
 const orderRoutes = require('./routes/orders');
 const wishlistRoutes = require('./routes/wishlist');
+const userRoutes = require('./routes/users');
 const razorpayRoutes = require('./routes/razorpay');
 
 // Import middleware
@@ -28,10 +29,10 @@ const app = express();
 
 
 // CORS middleware
-app.use(cors({
-  origin: [
-    process.env.CLIENT_URL || 
-    'http://localhost:3000',
+// In development, allow any localhost origin to avoid network errors from port changes
+const corsOrigin = (origin, callback) => {
+  const allowedList = [
+    process.env.CLIENT_URL || 'http://localhost:3000',
     'http://localhost:3001',
     'http://localhost:3002',
     'http://localhost:3003',
@@ -41,10 +42,18 @@ app.use(cors({
     'http://localhost:3007',
     'http://localhost:3008',
     'http://localhost:3009'
-  ],
+  ];
+  if (!origin) return callback(null, true);
+  if (allowedList.includes(origin)) return callback(null, true);
+  if (/^http:\/\/localhost:\d+$/.test(origin)) return callback(null, true);
+  return callback(new Error('Not allowed by CORS'));
+};
+
+app.use(cors({
+  origin: corsOrigin,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control']
 }));
 
 // Security middleware
@@ -76,6 +85,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/payment', razorpayRoutes);
 
 // Health check route

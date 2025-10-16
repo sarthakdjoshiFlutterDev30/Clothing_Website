@@ -25,8 +25,9 @@ export default function AdminUsers() {
           throw new Error('Failed to fetch users');
         }
 
-        const data = await response.json();
-        setUsers(data);
+        const json = await response.json();
+        const list = Array.isArray(json?.data) ? json.data : (Array.isArray(json) ? json : []);
+        setUsers(list);
       } catch (err: any) {
         setError(err.message || 'An error occurred while fetching users');
       } finally {

@@ -1,88 +1,71 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { authFetch } from '../../utils/staticAuth';
+import { formatINR } from '../../utils/auth';
 
-interface OrderItem {
+interface ProductImage { public_id: string; url: string }
+interface Product {
   _id: string;
   name: string;
   price: number;
-  quantity: number;
-  image: string;
-}
-
-interface ShippingInfo {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  address: {
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    country: string;
-  };
-}
-
-interface PaymentInfo {
-  id: string;
-  status: string;
-  method: string;
-  totalPrice: number;
-}
-
-interface Order {
-  _id: string;
-  user: string;
-  orderItems: OrderItem[];
-  shippingInfo: ShippingInfo;
-  paymentInfo: PaymentInfo;
-  orderStatus: string;
+  stock: number;
+  category: string;
+  brand?: string;
+  images?: ProductImage[];
+  isActive: boolean;
   createdAt: string;
 }
 
-export default function OrdersManagement() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+export default function ProductsManagement() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>('');
   const router = useRouter();
+  const API_BASE: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
   useEffect(() => {
-    fetchOrders();
+    void fetchProducts();
   }, []);
 
-  const fetchOrders = async () => {
+  const fetchProducts = async () => {
     try {
-      // Using authFetch utility with static credentials
-      const response = await authFetch('http://localhost:5000/api/orders');
-      const data = await response.json();
-      setOrders(data);
-      setLoading(false);
-    } catch (error) {
-      console.error(error);
-      setError('Failed to fetch orders');
+      setLoading(true);
+      const response = await fetch(`${API_BASE}/products?_t=${Date.now()}` , {
+        cache: 'no-store'
+      });
+      const json: any = await response.json();
+      const list: Product[] = Array.isArray(json?.data) ? json.data : (Array.isArray(json) ? json : []);
+      setProducts(list);
+    } catch (e) {
+      setError('Failed to fetch products');
+    } finally {
       setLoading(false);
     }
   };
 
-  const handleStatusUpdate = async (orderId: string, newStatus: string) => {
+  const handleDelete = async (productId: string) => {
     try {
-      const response = await authFetch(`http://localhost:5000/api/orders/${orderId}`, {
+      const res = await authFetch(`${API_BASE}/products/${productId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Delete failed');
+      setProducts(prev => prev.filter(p => p._id !== productId));
+    } catch (e) {
+      setError('Failed to delete product');
+    }
+  };
+
+  const handleToggleActive = async (product: Product) => {
+    try {
+      const res = await authFetch(`${API_BASE}/products/${product._id}`, {
         method: 'PUT',
-        body: JSON.stringify({ orderStatus: newStatus }),
+        body: JSON.stringify({ isActive: !product.isActive })
       });
-      if (response.ok) {
-        setOrders((prev) =>
-          prev.map((order) =>
-            order._id === orderId ? { ...order, orderStatus: newStatus } : order
-          )
-        );
-      }
-    } catch (err) {
-      console.error(err);
-      setError('Failed to update order status');
+      if (!res.ok) throw new Error('Update failed');
+      setProducts(prev => prev.map(p => p._id === product._id ? { ...p, isActive: !p.isActive } : p));
+    } catch (e) {
+      setError('Failed to update product');
     }
   };
 
@@ -91,7 +74,10 @@ export default function OrdersManagement() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold text-gray-900">Orders Management</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold text-gray-900">Products</h1>
+        <Link href="/admin/products/new" className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Add Product</Link>
+      </div>
 
       <div className="flex flex-col">
         <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -100,62 +86,38 @@ export default function OrdersManagement() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order ID</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Items</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                    <th className="px-6 py-3 relative"><span className="sr-only">Actions</span></th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
                   </tr>
                 </thead>
-
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {orders.map((order) => (
-                    <tr key={order._id}>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">{order._id}</td>
-
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {order.shippingInfo.firstName} {order.shippingInfo.lastName}
-                        <br />
-                        <span className="text-xs text-gray-400">{order.shippingInfo.email}</span>
+                  {products.map((product) => (
+                    <tr key={product._id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 flex items-center gap-3">
+                        {product.images && product.images[0]?.url ? (
+                          <img src={product.images[0].url} alt={product.name} className="h-10 w-10 rounded object-cover" />
+                        ) : (
+                          <div className="h-10 w-10 rounded bg-gray-200" />
+                        )}
+                        <div>
+                          <div className="font-medium">{product.name}</div>
+                          <div className="text-gray-500 text-xs">{product.category}{product.brand ? ` • ${product.brand}` : ''}</div>
+                        </div>
                       </td>
-
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {order.orderItems.map((item) => (
-                          <div key={item._id} className="flex items-center space-x-2">
-                            <img src={item.image} alt={item.name} className="h-8 w-8 rounded object-cover" />
-                            <span>{item.name}</span>
-                          </div>
-                        ))}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatINR(product.price)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.stock}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${product.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                          {product.isActive ? 'Active' : 'Inactive'}
+                        </span>
                       </td>
-
-                      <td className="px-6 py-4 text-sm text-gray-500">${order.paymentInfo.totalPrice.toFixed(2)}</td>
-
-                      <td className="px-6 py-4 text-sm">
-                        <select
-                          value={order.orderStatus}
-                          onChange={(e) => handleStatusUpdate(order._id, e.target.value)}
-                          className="border rounded px-2 py-1"
-                        >
-                          <option>Processing</option>
-                          <option>Shipped</option>
-                          <option>Delivered</option>
-                          <option>Cancelled</option>
-                        </select>
-                      </td>
-
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {new Date(order.createdAt).toLocaleString()}
-                      </td>
-
-                      <td className="px-6 py-4 text-right text-sm font-medium">
-                        <button
-                          onClick={() => router.push(`/admin/orders/${order._id}`)}
-                          className="text-indigo-600 hover:text-indigo-900"
-                        >
-                          View
-                        </button>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium space-x-3">
+                        <button onClick={() => router.push(`/admin/products/edit/${product._id}`)} className="text-indigo-600 hover:text-indigo-900">Edit</button>
+                        <button onClick={() => handleToggleActive(product)} className="text-yellow-600 hover:text-yellow-800">{product.isActive ? 'Hide' : 'Show'}</button>
+                        <button onClick={() => handleDelete(product._id)} className="text-red-600 hover:text-red-900">Delete</button>
                       </td>
                     </tr>
                   ))}

@@ -17,6 +17,16 @@ exports.protect = async (req, res, next) => {
   }
 
   try {
+    // In development, allow a static dev token to bypass JWT verification for tooling/demo
+    if (process.env.NODE_ENV === 'development' && process.env.STATIC_DEV_TOKEN && token === process.env.STATIC_DEV_TOKEN) {
+      req.user = {
+        _id: '000000000000000000000000',
+        role: 'admin',
+        name: 'Dev Admin',
+        email: 'dev-admin@example.com'
+      };
+      return next();
+    }
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     

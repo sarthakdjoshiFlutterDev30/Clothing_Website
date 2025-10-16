@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { STATIC_TOKEN } from '../../utils/staticAuth'
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -25,17 +26,15 @@ export default function Login() {
     setLoading(true)
     setError('')
 
-    // Check for static admin credentials
-    if (formData.email === 'admin123@gmail.com' && formData.password === 'admin') {
-      // Store admin info in localStorage
-      localStorage.setItem('token', 'static-admin-token')
-      localStorage.setItem('user', JSON.stringify({
-        name: 'Admin User',
-        email: 'admin',
-        role: 'admin'
-      }))
-      
-      // Redirect to admin dashboard
+    // Check for static admin credentials (dev)
+    const isStaticAdmin =
+      (formData.email === 'admin@example.com' && formData.password === 'admin123') ||
+      (formData.email === 'admin123@gmail.com' && formData.password === 'admin')
+
+    if (isStaticAdmin) {
+      // Store static admin token compatible with backend dev bypass
+      localStorage.setItem('token', STATIC_TOKEN)
+      localStorage.setItem('user', JSON.stringify({ name: 'Admin User', email: formData.email, role: 'admin' }))
       router.push('/admin')
       return
     }
