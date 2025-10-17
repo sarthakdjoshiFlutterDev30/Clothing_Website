@@ -76,6 +76,7 @@ exports.addToCart = asyncHandler(async (req, res, next) => {
   }
 
   await cart.save();
+  await cart.populate('items.product');
 
   res.status(200).json({
     success: true,
@@ -120,6 +121,7 @@ exports.updateCartItem = asyncHandler(async (req, res, next) => {
 
   cart.items[itemIndex].quantity = quantity;
   await cart.save();
+  await cart.populate('items.product');
 
   res.status(200).json({
     success: true,
@@ -150,6 +152,7 @@ exports.removeFromCart = asyncHandler(async (req, res, next) => {
 
   cart.items.splice(itemIndex, 1);
   await cart.save();
+  await cart.populate('items.product');
 
   res.status(200).json({
     success: true,
@@ -172,6 +175,7 @@ exports.clearCart = asyncHandler(async (req, res, next) => {
 
   cart.items = [];
   await cart.save();
+  await cart.populate('items.product');
 
   res.status(200).json({
     success: true,

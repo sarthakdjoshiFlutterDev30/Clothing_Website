@@ -2,6 +2,14 @@ import Link from 'next/link'
 import AddToCartButton from './components/AddToCartButton'
 
 export default function Home() {
+  const LOOKBOOK_IMAGES: { src: string; alt: string }[] = [
+    { src: 'https://images.unsplash.com/photo-1514996937319-344454492b37?q=80&w=1200&auto=format&fit=crop', alt: 'Modern fashion boutique exterior' },
+    { src: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1200&auto=format&fit=crop', alt: 'Assorted clothing on rack' },
+    { src: 'https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0?q=80&w=1200&auto=format&fit=crop', alt: 'Streetwear denim wall' },
+    { src: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=1200&auto=format&fit=crop', alt: 'Minimal storefront with mannequins' },
+    { src: 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=1200&auto=format&fit=crop', alt: 'Clean shop interior' },
+    { src: 'https://images.unsplash.com/photo-1537832816519-689ad163238b?q=80&w=1200&auto=format&fit=crop', alt: 'Accessories and bags display' }
+  ]
   return (
     <div className="bg-white overflow-hidden">
       {/* Hero Section */}
@@ -134,20 +142,18 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="heading-section text-center animate-fade-in">Lookbook</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 grid-modern">
-            {[1, 2, 3, 4, 5, 6].map((item, index) => (
-              <div 
-                key={item} 
-                className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl overflow-hidden hover-lift group cursor-pointer"
-                style={{animationDelay: `${index * 0.1}s`}}
+            {LOOKBOOK_IMAGES.map((img, index) => (
+              <div
+                key={img.src}
+                className="aspect-square rounded-2xl overflow-hidden hover-lift group cursor-pointer bg-white shadow-sm"
+                style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <div className="w-full h-full bg-gradient-to-br from-gray-200 via-gray-100 to-gray-300 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-                  <div className="text-center">
-                    <div className="w-12 h-12 bg-orange-500/20 rounded-full flex items-center justify-center mx-auto mb-2 group-hover:bg-orange-500/30 transition-colors">
-                      <span className="text-orange-500 text-lg">📸</span>
-                    </div>
-                    <span className="text-gray-600 text-sm font-medium">Look {item}</span>
-                  </div>
-                </div>
+                <img
+                  src={img.src}
+                  alt={img.alt}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                />
               </div>
             ))}
           </div>

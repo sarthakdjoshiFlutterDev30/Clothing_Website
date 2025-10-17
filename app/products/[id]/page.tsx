@@ -152,10 +152,10 @@ export default function ProductDetail() {
               
               <div className="flex items-center space-x-4 mb-4">
                 <div className="flex items-center">
-                  <span className="text-3xl font-bold text-gray-900">${product.price}</span>
+                  <span className="text-3xl font-bold text-gray-900">₹{product.price}</span>
                   {product.discount > 0 && (
                     <>
-                      <span className="text-lg text-gray-500 line-through ml-2">${product.originalPrice}</span>
+                      <span className="text-lg text-gray-500 line-through ml-2">₹{product.originalPrice}</span>
                       <span className="bg-red-100 text-red-600 text-sm font-medium px-2 py-1 rounded ml-2">
                         {product.discount}% OFF
                       </span>
@@ -193,18 +193,18 @@ export default function ProductDetail() {
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Available Sizes</h3>
               <div className="flex flex-wrap gap-2">
-                {product.sizes.map((sizeOption) => (
-                  <span
-                    key={sizeOption.size}
-                    className={`px-3 py-2 border rounded-md text-sm font-medium ${
-                      sizeOption.stock > 0
-                        ? 'border-gray-300 text-gray-700 hover:border-orange-500'
-                        : 'border-gray-200 text-gray-400 cursor-not-allowed'
-                    }`}
-                  >
-                    {sizeOption.size}
-                  </span>
-                ))}
+                {(() => {
+                  const inStock = (product.sizes || []).filter(s => s.stock > 0)
+                  const display = inStock.length ? inStock : (product.sizes || [])
+                  return display.map((sizeOption) => (
+                    <span
+                      key={sizeOption.size}
+                      className={"px-3 py-2 border rounded-md text-sm font-medium border-gray-300 text-gray-700 hover:border-orange-500"}
+                    >
+                      {sizeOption.size}
+                    </span>
+                  ))
+                })()}
               </div>
             </div>
 
@@ -232,6 +232,8 @@ export default function ProductDetail() {
                 productName={product.name}
                 price={product.price}
                 className="btn-primary w-full py-4 text-lg"
+                availableSizes={(() => { const inStock = (product.sizes || []).filter(s => s.stock > 0).map(s => s.size); return inStock.length ? inStock : (product.sizes || []).map(s => s.size) })()}
+                availableColors={(product.colors || []).map(c => c.name)}
               />
             </div>
 

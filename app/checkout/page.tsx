@@ -1,13 +1,16 @@
 'use client'
+// removed INR formatting
 
 import { useState } from 'react'
 import Link from 'next/link'
-import RazorpayPayment from '../components/RazorpayPayment'
 import { useRouter } from 'next/navigation'
+import { authFetch } from '../utils/staticAuth'
+import { useCart } from '../context/CartContext'
 
 export default function Checkout() {
   const router = useRouter()
-  const [paymentMethod, setPaymentMethod] = useState('card')
+  const { cart, fetchCart } = useCart()
+  const [paymentMethod, setPaymentMethod] = useState('cod')
   const [paymentStatus, setPaymentStatus] = useState('')
   const [formData, setFormData] = useState({
     fullName: '',
@@ -30,34 +33,119 @@ export default function Checkout() {
     }))
   }
 
-  const cartItems = [
-    {
-      id: 1,
-      name: "Classic Cotton T-Shirt",
-      size: "M",
-      price: 50.00,
-      image: "/api/placeholder/80/80"
-    },
-    {
-      id: 2,
-      name: "Elegant Silk Blouse",
-      size: "S",
-      price: 75.00,
-      image: "/api/placeholder/80/80"
-    },
-    {
-      id: 3,
-      name: "Kids' Denim Overalls",
-      size: "5",
-      price: 25.00,
-      image: "/api/placeholder/80/80"
-    }
-  ]
+  const cartItems = cart?.items || []
 
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price, 0)
-  const shipping = 10.00
-  const taxes = 15.00
+  const subtotal = cartItems.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0)
+  const shipping = subtotal >= 500 ? 0 : 100
+  const taxes = Math.round(subtotal * 0.18)
   const total = subtotal + shipping + taxes
+
+  // Enforce numeric-only for card fields
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Keep only digits, max 19 digits to support some card types (incl. spaces removal)
+    const digits = e.target.value.replace(/\D/g, '').slice(0, 19)
+    setFormData(prev => ({ ...prev, cardNumber: digits }))
+  }
+
+  const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Digits only, format as MM/YY
+    const digits = e.target.value.replace(/\D/g, '').slice(0, 4)
+    const formatted = digits.length >= 3 ? `${digits.slice(0,2)}/${digits.slice(2)}` : digits
+    setFormData(prev => ({ ...prev, expiryDate: formatted }))
+  }
+
+  const handleCvvChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digits = e.target.value.replace(/\D/g, '').slice(0, 4)
+    setFormData(prev => ({ ...prev, cvv: digits }))
+  }
+
+  const placeCodOrder = async () => {
+    try {
+      // Build minimal order payload for backend
+      const orderItems = cartItems.map((i: any) => ({
+        product: i.product?._id,
+        quantity: i.quantity,
+        size: i.size,
+        color: i.color
+      }))
+      const shippingInfo = {
+        firstName: formData.fullName.split(' ')[0] || formData.fullName,
+        lastName: formData.fullName.split(' ').slice(1).join(' ') || '-',
+        email: formData.email,
+        phone: formData.phone,
+        address: {
+          street: formData.address,
+          city: formData.city,
+          state: 'N/A',
+          zipCode: formData.postalCode,
+          country: formData.country
+        }
+      }
+      const paymentInfo = { id: 'cod', status: 'pending', method: 'cash_on_delivery' }
+      // Use real user token so order ties to the logged-in user
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      const API_BASE: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
+      const resp = await fetch(`${API_BASE}/orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ orderItems, shippingInfo, paymentInfo })
+      })
+      if (resp.ok) {
+        try { await fetchCart() } catch {}
+        router.push('/payment-success')
+      } else {
+        console.error('Order failed')
+      }
+    } catch (e) {
+      console.error('Order error', e)
+    }
+  }
+
+  const placeCardOrder = async () => {
+    try {
+      const orderItems = cartItems.map((i: any) => ({
+        product: i.product?._id,
+        quantity: i.quantity,
+        size: i.size,
+        color: i.color
+      }))
+      const shippingInfo = {
+        firstName: formData.fullName.split(' ')[0] || formData.fullName,
+        lastName: formData.fullName.split(' ').slice(1).join(' ') || '-',
+        email: formData.email,
+        phone: formData.phone,
+        address: {
+          street: formData.address,
+          city: formData.city,
+          state: 'N/A',
+          zipCode: formData.postalCode,
+          country: formData.country
+        }
+      }
+      const paymentInfo = { id: 'card', status: 'paid', method: 'card' }
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      const API_BASE: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
+      const resp = await fetch(`${API_BASE}/orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ orderItems, shippingInfo, paymentInfo })
+      })
+      if (resp.ok) {
+        try { await fetchCart() } catch {}
+        router.push('/payment-success')
+      } else {
+        console.error('Order failed')
+      }
+    } catch (e) {
+      console.error('Order error', e)
+    }
+  }
 
   return (
     <div className="bg-white min-h-screen">
@@ -170,6 +258,7 @@ export default function Checkout() {
                     <option value="United States">United States</option>
                     <option value="Canada">Canada</option>
                     <option value="United Kingdom">United Kingdom</option>
+                    <option value="India">India</option>
                     <option value="Australia">Australia</option>
                   </select>
                 </div>
@@ -215,130 +304,43 @@ export default function Checkout() {
             <div>
               <h2 className="text-xl font-semibold text-gray-900 mb-6">Payment Method</h2>
               
-              {/* Payment Method Selection */}
+              {/* Payment Method Selection (COD only) */}
               <div className="mb-6">
                 <div className="flex space-x-4">
                   <div 
-                    className={`border rounded-md p-4 flex items-center cursor-pointer ${paymentMethod === 'card' ? 'border-orange-500 bg-orange-50' : 'border-gray-300'}`}
-                    onClick={() => setPaymentMethod('card')}
+                    className={`border rounded-md p-4 flex items-center cursor-pointer ${paymentMethod === 'cod' ? 'border-orange-500 bg-orange-50' : 'border-gray-300'}`}
+                    onClick={() => setPaymentMethod('cod')}
                   >
                     <input
                       type="radio"
                       name="paymentMethod"
-                      checked={paymentMethod === 'card'}
-                      onChange={() => setPaymentMethod('card')}
+                      checked={paymentMethod === 'cod'}
+                      onChange={() => setPaymentMethod('cod')}
                       className="mr-2"
                     />
-                    <span>Credit/Debit Card</span>
-                  </div>
-                  <div 
-                    className={`border rounded-md p-4 flex items-center cursor-pointer ${paymentMethod === 'razorpay' ? 'border-orange-500 bg-orange-50' : 'border-gray-300'}`}
-                    onClick={() => setPaymentMethod('razorpay')}
-                  >
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      checked={paymentMethod === 'razorpay'}
-                      onChange={() => setPaymentMethod('razorpay')}
-                      className="mr-2"
-                    />
-                    <span>Razorpay</span>
+                    <span>Cash on Delivery (COD)</span>
                   </div>
                 </div>
               </div>
               
-              {/* Credit Card Form */}
-              {paymentMethod === 'card' && (
+              {/* Credit/Debit removed */}
+              
+              {paymentMethod === 'cod' && (
                 <div className="space-y-4">
-                  <div>
-                    <label htmlFor="cardNumber" className="block text-sm font-medium text-gray-700 mb-2">
-                      Card Number
-                    </label>
-                    <input
-                      type="text"
-                      name="cardNumber"
-                      id="cardNumber"
-                      value={formData.cardNumber}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                      placeholder="Enter your card number"
-                    />
+                  <div className="p-4 bg-gray-50 rounded-md text-sm text-gray-700">
+                    You chose Cash on Delivery. Please ensure your shipping details are correct. Payment will be collected at delivery.
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="expiryDate" className="block text-sm font-medium text-gray-700 mb-2">
-                        Expiry Date
-                      </label>
-                      <input
-                        type="text"
-                        name="expiryDate"
-                        id="expiryDate"
-                        value={formData.expiryDate}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                      placeholder="MM/YY"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="cvv" className="block text-sm font-medium text-gray-700 mb-2">
-                      CVV
-                    </label>
-                    <input
-                      type="text"
-                      name="cvv"
-                      id="cvv"
-                      value={formData.cvv}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                      placeholder="Enter CVV"
-                    />
-                  </div>
+                  <button
+                    type="button"
+                    onClick={placeCodOrder}
+                    className="w-full mt-2 bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600"
+                  >
+                    Place Order (COD)
+                  </button>
                 </div>
-                
-                <button
-                  type="button"
-                  className="w-full mt-6 bg-orange-500 hover:bg-orange-600 text-white py-3 px-4 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
-                >
-                  Pay with Card
-                </button>
-              </div>
               )}
               
-              {/* Razorpay Payment */}
-              {paymentMethod === 'razorpay' && (
-                <div>
-                  {paymentStatus && (
-                    <div className={`mb-4 p-4 rounded-md ${paymentStatus === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                      {paymentStatus === 'success' 
-                        ? 'Payment successful! Redirecting to order confirmation...' 
-                        : 'Payment failed. Please try again.'}
-                    </div>
-                  )}
-                  
-                  <RazorpayPayment 
-                    amount={total}
-                    customerInfo={{
-                      name: formData.fullName,
-                      email: formData.email,
-                      phone: formData.phone
-                    }}
-                    onSuccess={(paymentData) => {
-                      setPaymentStatus('success');
-                      console.log('Payment successful:', paymentData);
-                      // Redirect to success page after a short delay
-                      setTimeout(() => {
-                        router.push('/payment-success?orderId=' + paymentData.orderId);
-                      }, 2000);
-                    }}
-                    onError={(error) => {
-                      setPaymentStatus('failed');
-                      console.error('Payment failed:', error);
-                    }}
-                  />
-                </div>
-              )}
+              
             </div>
           </div>
 
@@ -349,16 +351,20 @@ export default function Checkout() {
 
               {/* Cart Items */}
               <div className="space-y-4 mb-6">
-                {cartItems.map((item) => (
-                  <div key={item.id} className="flex items-center space-x-4">
-                    <div className="w-16 h-16 bg-gray-200 rounded-md flex items-center justify-center">
-                      <span className="text-gray-500 text-xs">Image</span>
+                {cartItems.map((item: any) => (
+                  <div key={item._id} className="flex items-center space-x-4">
+                    <div className="w-16 h-16 bg-gray-200 rounded-md flex items-center justify-center overflow-hidden">
+                      {item.product?.images?.[0]?.url ? (
+                        <img src={item.product.images[0].url} alt={item.product?.name || 'Product'} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-gray-500 text-xs">No Image</span>
+                      )}
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-sm font-medium text-gray-900">{item.name}</h3>
+                      <h3 className="text-sm font-medium text-gray-900">{item.product?.name || 'Product'}</h3>
                       <p className="text-sm text-gray-500">Size {item.size}</p>
                     </div>
-                    <p className="text-sm font-medium text-gray-900">₹{item.price.toFixed(2)}</p>
+                    <p className="text-sm font-medium text-gray-900">₹{(item.price * item.quantity).toFixed(2)}</p>
                   </div>
                 ))}
               </div>
@@ -371,7 +377,7 @@ export default function Checkout() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Shipping</span>
-                  <span className="text-gray-900">₹{shipping.toFixed(2)}</span>
+                  <span className="text-gray-900">{shipping === 0 ? 'Free' : `₹${shipping.toFixed(2)}`}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Taxes</span>
@@ -385,14 +391,7 @@ export default function Checkout() {
               </div>
 
               {/* Complete Purchase Button (only shown for card payment) */}
-              {paymentMethod === 'card' && (
-                <Link
-                  href="/payment-success"
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-4 px-6 rounded-lg text-center block transition-colors duration-200"
-                >
-                  Complete Purchase
-                </Link>
-              )}
+              {/* Card button removed */}
             </div>
           </div>
         </div>

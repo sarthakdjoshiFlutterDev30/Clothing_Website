@@ -15,6 +15,13 @@ const sendEmail = async (options) => {
     }
   });
 
+  try {
+    await transporter.verify();
+    console.log('SMTP connection verified:', process.env.SMTP_HOST, 'as', process.env.SMTP_EMAIL);
+  } catch (e) {
+    console.log('SMTP verification failed:', e.message);
+  }
+
   // Define email options with safe fallbacks
   const fromEmail = process.env.FROM_EMAIL || process.env.SMTP_EMAIL;
   const fromName = process.env.FROM_NAME || 'Goodluck Fashion';
@@ -28,9 +35,14 @@ const sendEmail = async (options) => {
   };
 
   // Send email
-  const info = await transporter.sendMail(mailOptions);
-  console.log('Message sent: %s', info.messageId);
-  return info;
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email sent to', options.email, 'subject:', options.subject, 'id:', info.messageId);
+    return info;
+  } catch (e) {
+    console.log('Email sending failed:', e.message);
+    throw e;
+  }
 };
 
 module.exports = sendEmail;

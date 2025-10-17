@@ -90,18 +90,8 @@ const orderSchema = new mongoose.Schema({
     method: {
       type: String,
       required: true,
-      enum: ['card', 'paypal', 'cash_on_delivery', 'razorpay']
+      enum: ['card', 'paypal', 'cash_on_delivery']
     }
-  },
-  // Razorpay specific fields
-  razorpayOrderId: { 
-    type: String 
-  },
-  razorpayPaymentId: { 
-    type: String 
-  },
-  razorpaySignature: { 
-    type: String 
   },
   itemsPrice: {
     type: Number,
@@ -135,6 +125,11 @@ const orderSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
+
+// Helpful indexes for frequent queries
+orderSchema.index({ user: 1, createdAt: -1 });
+orderSchema.index({ createdAt: -1 });
+orderSchema.index({ orderStatus: 1, createdAt: -1 });
 
 // Calculate total price before saving
 orderSchema.pre('save', function(next) {

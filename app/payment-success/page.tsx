@@ -117,7 +117,7 @@ export default function PaymentSuccess() {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Payment Method</span>
-                <span className="font-semibold text-gray-900">{order.paymentInfo?.method || 'card'}</span>
+                <span className="font-semibold text-gray-900">{order.paymentInfo?.method || 'COD'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Order Status</span>

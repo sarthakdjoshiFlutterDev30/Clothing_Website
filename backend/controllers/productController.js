@@ -6,7 +6,7 @@ const cloudinary = require('../utils/cloudinary');
 // @route   GET /api/products
 // @access  Public
 exports.getProducts = asyncHandler(async (req, res, next) => {
-  const resPerPage = 12;
+  const resPerPage = Math.min(parseInt(req.query.limit, 10) || 12, 50);
   const page = parseInt(req.query.page, 10) || 1;
 
   let query = {};
@@ -16,14 +16,15 @@ exports.getProducts = asyncHandler(async (req, res, next) => {
     query.category = req.query.category;
   }
 
-  // Filter by subcategory
-  if (req.query.subcategory) {
-    query.subcategory = req.query.subcategory;
+  // Filter by subcategory (Type)
+  if (req.query.subcategory || req.query.type) {
+    query.subcategory = req.query.subcategory || req.query.type;
   }
 
-  // Filter by brand
+  // Filter by brand (support multiple comma-separated)
   if (req.query.brand) {
-    query.brand = req.query.brand;
+    const brands = String(req.query.brand).split(',').map(b => b.trim()).filter(Boolean);
+    query.brand = brands.length > 1 ? { $in: brands } : brands[0];
   }
 
   // Filter by price range
@@ -42,25 +43,51 @@ exports.getProducts = asyncHandler(async (req, res, next) => {
     query.ratings = { $gte: parseFloat(req.query.rating) };
   }
 
-  // Search by keyword
-  if (req.query.keyword) {
-    query.$text = { $search: req.query.keyword };
+  // Filter by size (match any variant size)
+  if (req.query.size) {
+    query['sizes.size'] = req.query.size;
   }
 
-  // Filter by featured
-  if (req.query.featured) {
-    query.isFeatured = req.query.featured === 'true';
+  // Filter by color (match any color name)
+  if (req.query.color) {
+    query['colors.name'] = req.query.color;
   }
+
+  // Search by keyword (alias: q)
+  const keyword = req.query.keyword || req.query.q;
+  if (keyword) {
+    query.$text = { $search: String(keyword) };
+  }
+
+  // Note: featured filter removed as isFeatured is deprecated
 
   // Filter by active status
   query.isActive = true;
 
   const skip = resPerPage * (page - 1);
 
-  let products = Product.find(query)
+  // Projection to reduce payload size for listing
+  const listProjection = {
+    name: 1,
+    price: 1,
+    originalPrice: 1,
+    discount: 1,
+    ratings: 1,
+    numOfReviews: 1,
+    images: { $slice: 1 },
+    category: 1,
+    subcategory: 1,
+    // Include variant options for client to show per-product sizes/colors
+    sizes: 1,
+    colors: 1,
+    createdAt: 1
+  };
+
+  let products = Product.find(query, listProjection)
     .sort({ createdAt: -1 })
     .skip(skip)
-    .limit(resPerPage);
+    .limit(resPerPage)
+    .lean();
 
   // Sort by price
   if (req.query.sort) {
@@ -95,7 +122,7 @@ exports.getProducts = asyncHandler(async (req, res, next) => {
 // @route   GET /api/products/:id
 // @access  Public
 exports.getProduct = asyncHandler(async (req, res, next) => {
-  const product = await Product.findById(req.params.id);
+  const product = await Product.findById(req.params.id).lean();
 
   if (!product) {
     return res.status(404).json({
@@ -147,13 +174,12 @@ exports.createProduct = asyncHandler(async (req, res, next) => {
   payload.description = payload.description || 'Description not provided';
   payload.category = payload.category || 'men';
   payload.subcategory = payload.subcategory || 'general';
-  payload.brand = payload.brand || 'Generic';
+  payload.brand = 'Goodluck Fashion';
   payload.price = price;
   payload.originalPrice = originalPrice;
   payload.discount = discount;
   payload.stock = stock;
   payload.isActive = payload.isActive != null ? payload.isActive : true;
-  payload.isFeatured = payload.isFeatured != null ? payload.isFeatured : false;
 
   // Sizes
   let sizes = payload.sizes;
@@ -175,12 +201,7 @@ exports.createProduct = asyncHandler(async (req, res, next) => {
   }
   payload.colors = colors;
 
-  // Tags
-  let tags = payload.tags;
-  if (typeof tags === 'string') {
-    try { tags = JSON.parse(tags); } catch { tags = ensureArray(tags); }
-  }
-  payload.tags = Array.isArray(tags) ? tags : [];
+  // Note: tags removed from schema; ignore any incoming tags
 
   // Shipping info defaults
   payload.shippingInfo = payload.shippingInfo || { freeShipping: false, estimatedDelivery: '3-5 business days' };
@@ -209,13 +230,30 @@ exports.updateProduct = asyncHandler(async (req, res, next) => {
   }
 
   const update = { ...req.body };
+  // Force brand on updates as well
+  update.brand = 'Goodluck Fashion';
   if (update.price != null) update.price = toNumber(update.price);
   if (update.originalPrice != null) update.originalPrice = toNumber(update.originalPrice);
   if (update.discount != null) update.discount = toNumber(update.discount);
   if (update.stock != null) update.stock = toNumber(update.stock);
+
+  // Normalize images from body (URLs) and merge with newly uploaded files
+  let mergedImages = [];
+  if (update.images) {
+    const fromBody = Array.isArray(update.images) ? update.images : [update.images];
+    mergedImages.push(
+      ...fromBody.filter(Boolean).map((img) => (
+        typeof img === 'string' ? { public_id: img, url: img } : img
+      ))
+    );
+    delete update.images;
+  }
   if (req.files && req.files.length > 0) {
-    const images = req.files.map(f => ({ public_id: f.filename || f.public_id || f.originalname, url: f.path }));
-    update.images = images;
+    const fromFiles = req.files.map(f => ({ public_id: f.filename || f.public_id || f.originalname, url: f.path }));
+    mergedImages.push(...fromFiles);
+  }
+  if (mergedImages.length > 0) {
+    update.images = mergedImages;
   }
 
   product = await Product.findByIdAndUpdate(req.params.id, update, {
@@ -302,13 +340,15 @@ exports.createProductReview = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @desc    Get featured products
-// @route   GET /api/products/featured
-// @access  Public
-exports.getFeaturedProducts = asyncHandler(async (req, res, next) => {
-  const products = await Product.find({ isFeatured: true, isActive: true })
-    .sort({ createdAt: -1 })
-    .limit(8);
+// Note: featured products endpoint removed as isFeatured is deprecated
+
+// @desc    Get inactive (deactivated) products (admin)
+// @route   GET /api/products/inactive
+// @access  Private/Admin
+exports.getInactiveProducts = asyncHandler(async (req, res, next) => {
+  const products = await Product.find({ isActive: false }, { name: 1, price: 1, images: { $slice: 1 }, updatedAt: 1 })
+    .sort({ updatedAt: -1 })
+    .lean();
 
   res.status(200).json({
     success: true,
@@ -324,7 +364,9 @@ exports.getProductsByCategory = asyncHandler(async (req, res, next) => {
   const products = await Product.find({ 
     category: req.params.category,
     isActive: true 
-  }).sort({ createdAt: -1 });
+  }, { name: 1, price: 1, images: { $slice: 1 }, ratings: 1, createdAt: 1 })
+  .sort({ createdAt: -1 })
+  .lean();
 
   res.status(200).json({
     success: true,
@@ -349,7 +391,9 @@ exports.searchProducts = asyncHandler(async (req, res, next) => {
   const products = await Product.find({
     $text: { $search: keyword },
     isActive: true
-  }).sort({ score: { $meta: 'textScore' } });
+  }, { name: 1, price: 1, images: { $slice: 1 }, ratings: 1, score: { $meta: 'textScore' } })
+  .sort({ score: { $meta: 'textScore' } })
+  .lean();
 
   res.status(200).json({
     success: true,

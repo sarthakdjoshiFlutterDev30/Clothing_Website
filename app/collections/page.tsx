@@ -21,7 +21,7 @@ interface Product {
   numOfReviews: number
   stock: number
   isActive: boolean
-  isFeatured: boolean
+  // isFeatured removed
 }
 
 export default function Collections() {
@@ -30,6 +30,7 @@ export default function Collections() {
   const [error, setError] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('men')
   const [priceRange, setPriceRange] = useState([0, 500])
+  const [maxPrice, setMaxPrice] = useState(500)
   const [selectedSize, setSelectedSize] = useState('')
   const [selectedColor, setSelectedColor] = useState('')
   const API_BASE: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
@@ -43,20 +44,27 @@ export default function Collections() {
       setLoading(true)
       const params = new URLSearchParams()
       if (selectedCategory) params.append('category', selectedCategory.toLowerCase())
-      // Bust caches to ensure we always see fresh data
+      params.append('limit', '12')
+      params.append('page', '1')
       params.append('_t', String(Date.now()))
       const response = await fetch(`${API_BASE}/products?${params.toString()}`, {
         cache: 'no-store'
       })
       
-      if (response.ok) {
-        const data = await response.json()
+      const data = await response.json().catch(() => ({}))
+      if (response.ok && (data?.success ?? true)) {
         const list = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : [])
         setProducts(list)
+        // Update price slider max dynamically based on fetched products
+        const computedMax = list.length ? Math.max(...list.map((p: any) => Number(p.price) || 0)) : 500
+        const normalizedMax = Math.max(500, Math.ceil(computedMax / 100) * 100)
+        setMaxPrice(normalizedMax)
+        setPriceRange(([min]) => [0, normalizedMax])
       } else {
-        setError('Failed to fetch products')
+        setError(data?.message || 'Failed to fetch products')
       }
     } catch (error) {
+      console.error('Collections fetch error', error)
       setError('Network error')
     } finally {
       setLoading(false)
@@ -122,7 +130,7 @@ export default function Collections() {
                     <input
                       type="range"
                       min="0"
-                      max="500"
+                      max={maxPrice}
                       value={priceRange[1]}
                       onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
                       className="w-full h-2 bg-gradient-to-r from-orange-200 to-orange-300 rounded-lg appearance-none cursor-pointer slider"
@@ -130,8 +138,8 @@ export default function Collections() {
                     <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-200 to-orange-300 rounded-lg pointer-events-none"></div>
                   </div>
                   <div className="flex justify-between text-sm font-medium text-gray-600">
-                    <span className="px-3 py-1 bg-orange-100 text-orange-600 rounded-full">${priceRange[0]}</span>
-                    <span className="px-3 py-1 bg-orange-100 text-orange-600 rounded-full">${priceRange[1]}+</span>
+                    <span className="px-3 py-1 bg-orange-100 text-orange-600 rounded-full">₹{priceRange[0]}</span>
+                    <span className="px-3 py-1 bg-orange-100 text-orange-600 rounded-full">₹{priceRange[1]}+</span>
                   </div>
                 </div>
               </div>
@@ -191,7 +199,7 @@ export default function Collections() {
           </div>
 
           {/* Products Grid */}
-          <div className="lg:w-3/4">
+          <div className="lg:w-2/3">
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="text-center">
@@ -202,73 +210,49 @@ export default function Collections() {
             ) : error ? (
               <div className="text-center py-12">
                 <p className="text-red-600 mb-4">{error}</p>
-                <button onClick={fetchProducts} className="btn-primary">
+                <button
+                  onClick={fetchProducts}
+                  className="bg-orange-500 text-white px-4 py-2 rounded-lg shadow hover:bg-orange-600 transition"
+                >
                   Try Again
                 </button>
               </div>
+            ) : filteredProducts.length === 0 ? (
+              <div className="text-center py-12 text-gray-600">No products found.</div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 grid-modern">
-                {filteredProducts.map((product, index) => (
-                  <div 
-                    key={product._id} 
-                    className="card-modern overflow-hidden group hover-lift"
-                    style={{animationDelay: `${index * 0.1}s`}}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredProducts.map((product) => (
+                  <div
+                    key={product._id}
+                    className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
                   >
-                    <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center relative overflow-hidden">
-                      {product.images && product.images.length > 0 ? (
-                        <img
-                          src={product.images[0].url}
-                          alt={product.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      ) : (
-                        <div className="text-center relative z-10">
-                          <div className="w-20 h-20 bg-gradient-to-br from-orange-400 to-orange-500 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                            <span className="text-white text-2xl">👔</span>
-                          </div>
-                          <span className="text-gray-500 text-sm font-medium">No Image</span>
-                        </div>
-                      )}
+                    <div className="relative">
+                      <img
+                        src={product.images && product.images[0] ? product.images[0].url : ''}
+                        alt={product.name}
+                        className="w-full h-60 object-cover"
+                      />
                       {product.discount > 0 && (
-                        <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                        <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded">
                           {product.discount}% OFF
-                        </div>
+                        </span>
                       )}
                     </div>
-                    <div className="p-6">
-                      <h3 className="font-bold text-gray-900 mb-2 group-hover:text-orange-600 transition-colors">{product.name}</h3>
-                      <p className="text-sm text-gray-500 mb-2">{product.brand} • {product.category}</p>
-                      <div className="flex items-center mb-4">
-                        <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <svg
-                              key={i}
-                              className={`w-4 h-4 ${
-                                i < Math.floor(product.ratings) ? 'text-yellow-400' : 'text-gray-300'
-                              }`}
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                          ))}
-                          <span className="ml-1 text-xs text-gray-500">({product.numOfReviews})</span>
-                        </div>
+                    <div className="p-4">
+                      <h3 className="text-lg font-semibold text-gray-800">{product.name}</h3>
+                      <p className="text-sm text-gray-500 mt-1">{product.brand} • {product.category}</p>
+                      <div className="flex items-center mt-2">
+                        <span className="text-xl font-bold text-gray-900">{formatINR(product.price)}</span>
+                        {product.originalPrice && product.discount > 0 && (
+                          <span className="ml-2 text-gray-400 line-through text-sm">{formatINR(product.originalPrice)}</span>
+                        )}
                       </div>
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <span className="text-xl font-bold text-gray-900">{formatINR(product.price)}</span>
-                          {product.discount > 0 && (
-                            <span className="text-sm text-gray-500 line-through ml-2">{formatINR(product.originalPrice)}</span>
-                          )}
-                        </div>
-                        <AddToCartButton
-                          productId={product._id}
-                          productName={product.name}
-                          price={product.price}
-                          className="btn-primary text-sm px-6 py-2"
-                        />
-                      </div>
+                      <AddToCartButton
+                        productId={product._id}
+                        productName={product.name}
+                        price={product.price}
+                        className="mt-4 bg-orange-500 text-white w-full py-2 rounded-lg font-medium hover:bg-orange-600 transition"
+                      />
                     </div>
                   </div>
                 ))}

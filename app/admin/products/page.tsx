@@ -88,8 +88,6 @@ export default function ProductsManagement() {
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
                   </tr>
                 </thead>
@@ -108,15 +106,8 @@ export default function ProductsManagement() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatINR(product.price)}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.stock}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${product.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                          {product.isActive ? 'Active' : 'Inactive'}
-                        </span>
-                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium space-x-3">
                         <button onClick={() => router.push(`/admin/products/edit/${product._id}`)} className="text-indigo-600 hover:text-indigo-900">Edit</button>
-                        <button onClick={() => handleToggleActive(product)} className="text-yellow-600 hover:text-yellow-800">{product.isActive ? 'Hide' : 'Show'}</button>
                         <button onClick={() => handleDelete(product._id)} className="text-red-600 hover:text-red-900">Delete</button>
                       </td>
                     </tr>
@@ -127,6 +118,7 @@ export default function ProductsManagement() {
           </div>
         </div>
       </div>
+      {/* Inactive products card removed as active/deactive is not used */}
     </div>
   );
 }

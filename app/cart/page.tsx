@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCart } from '../context/CartContext'
+// removed INR formatting
 
 export default function Cart() {
   const { cart, loading, error, updateCartItem, removeFromCart, clearCart } = useCart()
@@ -122,7 +123,7 @@ export default function Cart() {
                         Size: {item.size} • Color: {item.color}
                       </p>
                       <p className="text-lg font-bold text-gray-900 mt-1">
-                        ${item.price.toFixed(2)}
+                        ₹{item.price.toFixed(2)}
                       </p>
                     </div>
 
@@ -160,7 +161,7 @@ export default function Cart() {
                     {/* Item Total */}
                     <div className="text-right">
                       <p className="text-lg font-bold text-gray-900">
-                        ${(item.price * item.quantity).toFixed(2)}
+                        ₹{(item.price * item.quantity).toFixed(2)}
                       </p>
                     </div>
 
@@ -192,26 +193,26 @@ export default function Cart() {
               <div className="space-y-4">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="font-medium">${cart.totalPrice.toFixed(2)}</span>
+                  <span className="font-medium">₹{cart.totalPrice.toFixed(2)}</span>
                 </div>
                 
                 <div className="flex justify-between">
                   <span className="text-gray-600">Shipping</span>
                   <span className="font-medium">
-                    {cart.totalPrice > 100 ? 'Free' : '$10.00'}
+                    {cart.totalPrice >= 500 ? 'Free' : '₹100.00'}
                   </span>
                 </div>
                 
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Tax</span>
-                  <span className="font-medium">${(cart.totalPrice * 0.1).toFixed(2)}</span>
+                  <span className="text-gray-600">Tax (18% GST)</span>
+                  <span className="font-medium">₹{Math.round(cart.totalPrice * 0.18).toFixed(2)}</span>
                 </div>
                 
                 <div className="border-t border-gray-200 pt-4">
                   <div className="flex justify-between">
                     <span className="text-lg font-bold text-gray-900">Total</span>
                     <span className="text-lg font-bold text-gray-900">
-                      ${(cart.totalPrice + (cart.totalPrice > 100 ? 0 : 10) + (cart.totalPrice * 0.1)).toFixed(2)}
+                      ₹{(cart.totalPrice + (cart.totalPrice >= 500 ? 0 : 100) + Math.round(cart.totalPrice * 0.18)).toFixed(2)}
                     </span>
                   </div>
                 </div>

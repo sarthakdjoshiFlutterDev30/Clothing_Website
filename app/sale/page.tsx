@@ -75,7 +75,7 @@ export default function SalePage() {
         <div className="card-modern p-6 flex items-center justify-between bg-gradient-to-r from-orange-50 to-white">
           <div>
             <p className="text-sm text-orange-600 font-semibold">Extra 10% Off</p>
-            <h3 className="text-lg font-bold text-gray-900">Orders over $150</h3>
+            <h3 className="text-lg font-bold text-gray-900">Orders over ₹150</h3>
           </div>
           <span className="px-3 py-1 bg-orange-500 text-white rounded-full text-xs">AUTO APPLIED</span>
         </div>
@@ -89,7 +89,7 @@ export default function SalePage() {
         <div className="card-modern p-6 flex items-center justify-between bg-gradient-to-r from-rose-50 to-white">
           <div>
             <p className="text-sm text-orange-600 font-semibold">Free Shipping</p>
-            <h3 className="text-lg font-bold text-gray-900">On orders over $100</h3>
+            <h3 className="text-lg font-bold text-gray-900">On orders over ₹500</h3>
           </div>
           <span className="px-3 py-1 bg-orange-500 text-white rounded-full text-xs">POPULAR</span>
         </div>
@@ -138,9 +138,9 @@ export default function SalePage() {
                   <p className="text-sm text-gray-500 mb-3">{p.brand} • {p.category}</p>
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="text-xl font-bold text-gray-900">${p.price}</span>
+                      <span className="text-xl font-bold text-gray-900">₹{p.price}</span>
                       {p.originalPrice && (
-                        <span className="text-sm text-gray-500 line-through ml-2">${p.originalPrice}</span>
+                        <span className="text-sm text-gray-500 line-through ml-2">₹{p.originalPrice}</span>
                       )}
                     </div>
                     <AddToCartButton

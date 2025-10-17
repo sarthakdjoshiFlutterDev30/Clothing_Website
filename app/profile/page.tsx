@@ -30,6 +30,7 @@ export default function Profile() {
   const [orders, setOrders] = useState<any[]>([])
   const [ordersLoading, setOrdersLoading] = useState(false)
   const router = useRouter()
+  const API_BASE: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -44,7 +45,7 @@ export default function Profile() {
   const fetchUserProfile = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:5000/api/auth/me', {
+      const response = await fetch(`${API_BASE}/auth/me`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -67,17 +68,34 @@ export default function Profile() {
     try {
       setOrdersLoading(true)
       const token = localStorage.getItem('token')
-      const res = await fetch('http://localhost:5000/api/orders/myorders', {
+      const res = await fetch(`${API_BASE}/orders/myorders`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       const json = await res.json()
-      if (res.ok) {
-        setOrders(json.data || [])
+      if (res.ok && json?.success) {
+        setOrders(Array.isArray(json.data) ? json.data : [])
+      } else {
+        setOrders([])
       }
     } catch (e) {
       // ignore; lightweight UI fetch
     } finally {
       setOrdersLoading(false)
+    }
+  }
+
+  const cancelOrder = async (orderId: string) => {
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`${API_BASE}/orders/${orderId}/cancel`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      if (res.ok) {
+        await fetchMyOrders()
+      }
+    } catch (e) {
+      // ignore
     }
   }
 
@@ -339,7 +357,7 @@ export default function Profile() {
                           </div>
                           <div>
                             <p className="text-xs text-gray-500">Total</p>
-                            <p className="font-semibold text-orange-600">${(o.totalPrice || 0).toFixed(2)}</p>
+                            <p className="font-semibold text-orange-600">₹{(o.totalPrice || 0).toFixed(2)}</p>
                           </div>
                         </div>
                         {o.orderItems?.length > 0 && (
@@ -348,7 +366,7 @@ export default function Profile() {
                               {o.orderItems.slice(0,3).map((it: any, idx: number) => (
                                 <li key={idx} className="flex justify-between">
                                   <span>{it.name}</span>
-                                  <span>x{it.quantity} • ${it.price}</span>
+                                  <span>x{it.quantity} • ₹{it.price}</span>
                                 </li>
                               ))}
                               {o.orderItems.length > 3 && (
@@ -357,6 +375,16 @@ export default function Profile() {
                             </ul>
                           </div>
                         )}
+                        <div className="mt-4 flex justify-end">
+                          {o.orderStatus !== 'Cancelled' && (
+                            <button
+                              onClick={() => cancelOrder(o._id)}
+                              className="px-4 py-2 bg-red-50 text-red-700 border border-red-200 rounded hover:bg-red-100 transition"
+                            >
+                              Cancel Order
+                            </button>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>

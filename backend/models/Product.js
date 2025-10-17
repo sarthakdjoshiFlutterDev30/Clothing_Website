@@ -71,7 +71,6 @@ const productSchema = new mongoose.Schema({
       required: true
     }
   }],
-  tags: [String],
   ratings: {
     type: Number,
     default: 0,
@@ -116,14 +115,6 @@ const productSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
-  },
-  isFeatured: {
-    type: Boolean,
-    default: false
-  },
-  weight: {
-    type: Number,
-    default: 0
   },
   dimensions: {
     length: Number,

@@ -5,7 +5,8 @@ const {
   getMyOrders,
   getAllOrders,
   updateOrder,
-  deleteOrder
+  deleteOrder,
+  cancelMyOrder
 } = require('../controllers/orderController');
 
 const { protect, authorize } = require('../middleware/auth');
@@ -22,5 +23,7 @@ router.route('/:id')
   .get(protect, getOrder)
   .put(protect, authorize('admin'), updateOrder)
   .delete(protect, authorize('admin'), deleteOrder);
+
+router.route('/:id/cancel').put(protect, cancelMyOrder);
 
 module.exports = router;

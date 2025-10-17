@@ -4,6 +4,12 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+let compression;
+try {
+  compression = require('compression');
+} catch (e) {
+  console.log('compression module not found, proceeding without response compression');
+}
 
 // Load env vars
 require('dotenv').config({ path: './config.env' });
@@ -20,13 +26,17 @@ const cartRoutes = require('./routes/cart');
 const orderRoutes = require('./routes/orders');
 const wishlistRoutes = require('./routes/wishlist');
 const userRoutes = require('./routes/users');
-const razorpayRoutes = require('./routes/razorpay');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
+
+// Enable gzip compression for all responses if available
+if (compression) {
+  app.use(compression());
+}
 
 // CORS middleware
 // In development, allow any localhost origin to avoid network errors from port changes
@@ -71,10 +81,22 @@ app.use(limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Lightweight response caching hints for idempotent GETs
+app.use((req, res, next) => {
+  if (req.method === 'GET' && req.path.startsWith('/api/')) {
+    // 30s client cache, allow intermediaries to cache as well
+    res.set('Cache-Control', 'public, max-age=30, s-maxage=30');
+  }
+  next();
+});
+
 // Connect to database
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+  maxPoolSize: 20,
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
 })
 .then(() => console.log('MongoDB connected successfully'))
 .catch(err => console.log('MongoDB connection error:', err));
@@ -86,7 +108,7 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/payment', razorpayRoutes);
+// Removed Razorpay payment routes
 
 // Health check route
 app.get('/api/health', (req, res) => {

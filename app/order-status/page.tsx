@@ -31,7 +31,8 @@ export default function OrderStatus() {
           return
         }
 
-        const res = await fetch('http://localhost:5000/api/orders/myorders', {
+        const API_BASE: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
+        const res = await fetch(`${API_BASE}/orders/myorders`, {
           headers: { Authorization: `Bearer ${token}` }
         })
         const json = await res.json()
@@ -98,7 +99,7 @@ export default function OrderStatus() {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Total</p>
-                    <p className="font-semibold text-orange-600">${o.totalPrice.toFixed(2)}</p>
+                    <p className="font-semibold text-orange-600">₹{o.totalPrice.toFixed(2)}</p>
                   </div>
                 </div>
                 {o.orderItems?.length > 0 && (
@@ -107,7 +108,7 @@ export default function OrderStatus() {
                       {o.orderItems.slice(0, 4).map((it, idx) => (
                         <li key={idx} className="flex justify-between">
                           <span>{it.name}</span>
-                          <span>x{it.quantity} • ${it.price}</span>
+                          <span>x{it.quantity} • ₹{it.price}</span>
                         </li>
                       ))}
                       {o.orderItems.length > 4 && (

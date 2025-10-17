@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useCart } from '../context/CartContext'
 
 interface AddToCartButtonProps {
@@ -10,6 +10,8 @@ interface AddToCartButtonProps {
   className?: string
   size?: string
   color?: string
+  availableSizes?: string[]
+  availableColors?: string[]
 }
 
 export default function AddToCartButton({ 
@@ -18,13 +20,20 @@ export default function AddToCartButton({
   price, 
   className = "btn-primary",
   size = "M",
-  color = "Default"
+  color = "Default",
+  availableSizes,
+  availableColors
 }: AddToCartButtonProps) {
   const { addToCart, loading } = useCart()
   const [isAdding, setIsAdding] = useState(false)
   const [showOptions, setShowOptions] = useState(false)
-  const [selectedSize, setSelectedSize] = useState(size)
-  const [selectedColor, setSelectedColor] = useState(color)
+  const computedSizes = Array.isArray(availableSizes) ? availableSizes : []
+  const computedColors = Array.isArray(availableColors) ? availableColors : []
+  const [optionsSizes, setOptionsSizes] = useState<string[]>(computedSizes)
+  const [optionsColors, setOptionsColors] = useState<string[]>(computedColors)
+  const [selectedSize, setSelectedSize] = useState<string>(computedSizes[0] || size)
+  const [selectedColor, setSelectedColor] = useState<string>(computedColors[0] || color)
+  const API_BASE: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
   const [quantity, setQuantity] = useState(1)
 
   const handleAddToCart = async () => {
@@ -39,12 +48,41 @@ export default function AddToCartButton({
     }
   }
 
-  const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
-  const colors = ['Black', 'White', 'Red', 'Blue', 'Green', 'Gray', 'Navy', 'Brown']
+  // Only show options provided by admin for this product
+  const sizes = optionsSizes
+  const colors = optionsColors
+
+  // When opening options on listing cards, fetch full product if options were not supplied
+  useEffect(() => {
+    const shouldFetch = showOptions && (sizes.length === 0 || colors.length === 0)
+    if (!shouldFetch) return
+
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch(`${API_BASE}/products/${productId}`, { cache: 'no-store' })
+        if (!res.ok) return
+        const json = await res.json()
+        const product = json?.data ?? json
+        const fetchedSizes: string[] = Array.isArray(product?.sizes) ? product.sizes.map((s: any) => s.size) : []
+        const fetchedColors: string[] = Array.isArray(product?.colors) ? product.colors.map((c: any) => c.name) : []
+        if (!cancelled) {
+          setOptionsSizes(fetchedSizes)
+          setOptionsColors(fetchedColors)
+          if (fetchedSizes.length && !selectedSize) setSelectedSize(fetchedSizes[0])
+          if (fetchedColors.length && !selectedColor) setSelectedColor(fetchedColors[0])
+        }
+      } catch {}
+    })()
+
+    return () => { cancelled = true }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showOptions])
 
   if (showOptions) {
     return (
       <div className="space-y-4 p-4 border border-gray-200 rounded-lg bg-white">
+        {sizes.length > 0 && (
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Size</label>
           <select
@@ -57,7 +95,9 @@ export default function AddToCartButton({
             ))}
           </select>
         </div>
+        )}
 
+        {colors.length > 0 && (
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Color</label>
           <select
@@ -70,6 +110,7 @@ export default function AddToCartButton({
             ))}
           </select>
         </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>

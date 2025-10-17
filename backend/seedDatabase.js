@@ -31,10 +31,8 @@ const sampleProducts = [
       { name: "Black", hex: "#000000" },
       { name: "Gray", hex: "#808080" }
     ],
-    tags: ["casual", "cotton", "basic"],
     stock: 45,
-    isActive: true,
-    isFeatured: true
+    isActive: true
   },
   {
     name: "Elegant Black Dress",
@@ -63,10 +61,8 @@ const sampleProducts = [
       { name: "Navy", hex: "#000080" },
       { name: "Red", hex: "#FF0000" }
     ],
-    tags: ["formal", "elegant", "dress"],
     stock: 34,
-    isActive: true,
-    isFeatured: true
+    isActive: true
   },
   {
     name: "Denim Jeans",
@@ -95,10 +91,8 @@ const sampleProducts = [
       { name: "Dark Blue", hex: "#000080" },
       { name: "Black", hex: "#000000" }
     ],
-    tags: ["denim", "casual", "jeans"],
     stock: 44,
-    isActive: true,
-    isFeatured: false
+    isActive: true
   },
   {
     name: "Summer Blouse",
@@ -127,10 +121,8 @@ const sampleProducts = [
       { name: "Pink", hex: "#FFC0CB" },
       { name: "Yellow", hex: "#FFFF00" }
     ],
-    tags: ["summer", "light", "blouse"],
     stock: 27,
-    isActive: true,
-    isFeatured: true
+    isActive: true
   },
   {
     name: "Leather Jacket",
@@ -157,10 +149,8 @@ const sampleProducts = [
       { name: "Black", hex: "#000000" },
       { name: "Brown", hex: "#8B4513" }
     ],
-    tags: ["leather", "jacket", "premium"],
     stock: 14,
-    isActive: true,
-    isFeatured: true
+    isActive: true
   },
   {
     name: "Silk Scarf",
@@ -186,10 +176,8 @@ const sampleProducts = [
       { name: "Green", hex: "#008000" },
       { name: "Purple", hex: "#800080" }
     ],
-    tags: ["silk", "scarf", "accessory"],
     stock: 20,
-    isActive: true,
-    isFeatured: false
+    isActive: true
   },
   {
     name: "Kids T-Shirt",
@@ -218,10 +206,8 @@ const sampleProducts = [
       { name: "Yellow", hex: "#FFFF00" },
       { name: "Green", hex: "#008000" }
     ],
-    tags: ["kids", "colorful", "comfortable"],
     stock: 38,
-    isActive: true,
-    isFeatured: true
+    isActive: true
   },
   {
     name: "Wool Sweater",
@@ -250,10 +236,8 @@ const sampleProducts = [
       { name: "Navy", hex: "#000080" },
       { name: "Cream", hex: "#F5F5DC" }
     ],
-    tags: ["wool", "warm", "sweater"],
     stock: 23,
-    isActive: true,
-    isFeatured: false
+    isActive: true
   }
 ];
 

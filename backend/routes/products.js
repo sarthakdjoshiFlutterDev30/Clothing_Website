@@ -6,9 +6,9 @@ const {
   updateProduct,
   deleteProduct,
   createProductReview,
-  getFeaturedProducts,
   getProductsByCategory,
-  searchProducts
+  searchProducts,
+  getInactiveProducts
 } = require('../controllers/productController');
 
 const { protect, authorize } = require('../middleware/auth');
@@ -22,7 +22,8 @@ router.route('/')
   .get(getProducts)
   .post(protect, authorize('admin'), upload.array('images', 6), createProduct);
 
-router.route('/featured').get(getFeaturedProducts);
+// Featured route removed (isFeatured deprecated)
+router.route('/inactive').get(protect, authorize('admin'), getInactiveProducts);
 router.route('/search').get(searchProducts);
 router.route('/category/:category').get(getProductsByCategory);
 
