@@ -25,7 +25,7 @@ export default function PaymentSuccess() {
         }
 
         // Fetch cart to build order items/pricing
-        const cartRes = await fetch('https://clothing-website-backend-g7te.onrender.com/api/cart', {
+        const cartRes = await fetch('/api/cart', {
           headers: { Authorization: `Bearer ${token}` }
         })
         const cartJson = await cartRes.json()
@@ -53,7 +53,7 @@ export default function PaymentSuccess() {
         // Payment info from gateway would go here; using success defaults
         const paymentInfo = { id: 'payment_success', status: 'succeeded', method: 'card' }
 
-        const orderRes = await fetch('https://clothing-website-backend-g7te.onrender.com/api/orders', {
+        const orderRes = await fetch('/api/orders', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -82,7 +82,7 @@ export default function PaymentSuccess() {
         setOrder(orderJson.data)
 
         // Clear cart
-        await fetch('https://clothing-website-backend-g7te.onrender.com/api/cart', {
+        await fetch('/api/cart', {
           method: 'DELETE',
           headers: { Authorization: `Bearer ${token}` }
         })

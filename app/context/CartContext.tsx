@@ -59,7 +59,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
   const fetchCart = async () => {
     try {
       setLoading(true)
-      const response = await authFetch('https://clothing-website-backend-g7te.onrender.com/api/cart')
+      const response = await authFetch('/api/cart')
 
       if (response.ok) {
         const data = await response.json()
@@ -80,7 +80,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
       setLoading(true)
       setError('')
       
-      const response = await authFetch('https://clothing-website-backend-g7te.onrender.com/api/cart', {
+      const response = await authFetch('/api/cart', {
         method: 'POST',
         body: JSON.stringify({
           productId,
@@ -109,7 +109,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
       setLoading(true)
       setError('')
       
-      const response = await authFetch(`https://clothing-website-backend-g7te.onrender.com/api/cart/${itemId}`, {
+      const response = await authFetch(`/api/cart/${itemId}`, {
         method: 'PUT',
         body: JSON.stringify({ quantity })
       })
@@ -133,7 +133,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
       setLoading(true)
       setError('')
       
-      const response = await authFetch(`https://clothing-website-backend-g7te.onrender.com/api/cart/${itemId}`, {
+      const response = await authFetch(`/api/cart/${itemId}`, {
         method: 'DELETE'
       })
 
@@ -156,7 +156,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
       setLoading(true)
       setError('')
       
-      const response = await authFetch('https://clothing-website-backend-g7te.onrender.com/api/cart', {
+      const response = await authFetch('/api/cart', {
         method: 'DELETE'
       })
 

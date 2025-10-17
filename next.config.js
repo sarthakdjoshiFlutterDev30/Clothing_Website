@@ -7,6 +7,14 @@
       { protocol: 'http', hostname: 'res.cloudinary.com' }
     ]
   },
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'https://clothing-website-backend-g7te.onrender.com/api/:path*'
+      }
+    ]
+  },
   async headers() {
     return [
       {

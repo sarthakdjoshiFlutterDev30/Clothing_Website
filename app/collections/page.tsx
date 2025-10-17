@@ -33,7 +33,7 @@ export default function Collections() {
   const [maxPrice, setMaxPrice] = useState(500)
   const [selectedSize, setSelectedSize] = useState('')
   const [selectedColor, setSelectedColor] = useState('')
-  const API_BASE: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_API_URL || 'https://clothing-website-backend-g7te.onrender.com/api'
+  const API_BASE: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_API_URL || '/api'
 
   useEffect(() => {
     fetchProducts()

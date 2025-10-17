@@ -54,7 +54,7 @@ function ResetPasswordContent() {
     }
 
     try {
-      const response = await fetch(`https://clothing-website-backend-g7te.onrender.com/api/auth/resetpassword/${token}`, {
+      const response = await fetch(`/api/auth/resetpassword/${token}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

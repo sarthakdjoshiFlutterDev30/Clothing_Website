@@ -15,7 +15,7 @@ export default function AdminUsers() {
           throw new Error('Authentication required');
         }
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://clothing-website-backend-g7te.onrender.com/api'}/users`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || '/api'}/users`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -45,7 +45,7 @@ export default function AdminUsers() {
         throw new Error('Authentication required');
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://clothing-website-backend-g7te.onrender.com/api'}/users/${userId}/role`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || '/api'}/users/${userId}/role`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
