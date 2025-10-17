@@ -5,7 +5,7 @@ export default function TermsOfServicePage() {
       <p className="mb-4">Last updated: October 17, 2025</p>
 
       <p className="mb-4">
-        These Terms of Service ("Terms") govern your access to and use of the Goodluck Fashion
+        These Terms of Service (&quot;Terms&quot;) govern your access to and use of the Goodluck Fashion
         website and services. By using our site, you agree to be bound by these Terms.
       </p>
 

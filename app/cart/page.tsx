@@ -58,7 +58,7 @@ export default function Cart() {
               </svg>
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-4">Your cart is empty</h1>
-            <p className="text-gray-600 mb-8">Looks like you haven't added any items to your cart yet.</p>
+            <p className="text-gray-600 mb-8">Looks like you haven&#39;t added any items to your cart yet.</p>
             <Link href="/collections" className="btn-primary text-lg px-8 py-4">
               Start Shopping
             </Link>

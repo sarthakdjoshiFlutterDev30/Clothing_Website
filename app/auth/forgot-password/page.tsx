@@ -53,7 +53,7 @@ export default function ForgotPassword() {
             Forgot your password?
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            No worries, we'll send you reset instructions.
+            No worries, we&apos;ll send you reset instructions.
           </p>
         </div>
 
@@ -89,7 +89,7 @@ export default function ForgotPassword() {
                 />
               </div>
               <p className="mt-1 text-xs text-gray-500">
-                We'll send you a link to reset your password
+                We&apos;ll send you a link to reset your password
               </p>
             </div>
 
