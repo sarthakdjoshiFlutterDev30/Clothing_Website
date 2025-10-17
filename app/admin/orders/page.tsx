@@ -53,7 +53,7 @@ export default function AdminOrders() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [detailLoading, setDetailLoading] = useState<boolean>(false);
   const [detailError, setDetailError] = useState<string>('');
-  const API_BASE: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  const API_BASE: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_API_URL || 'https://clothing-website-backend-g7te.onrender.com/api';
   const SHOP_NAME: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_SHOP_NAME || 'Clothing Store';
   const SHOP_ADDRESS: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_SHOP_ADDRESS || '123 Fashion Street, Mumbai, MH 400001, India';
   const SHOP_GST: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_SHOP_GST || 'GSTIN: 22AAAAA0000A1Z5';

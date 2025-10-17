@@ -33,7 +33,7 @@ export default function AddToCartButton({
   const [optionsColors, setOptionsColors] = useState<string[]>(computedColors)
   const [selectedSize, setSelectedSize] = useState<string>(computedSizes[0] || size)
   const [selectedColor, setSelectedColor] = useState<string>(computedColors[0] || color)
-  const API_BASE: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
+  const API_BASE: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_API_URL || 'https://clothing-website-backend-g7te.onrender.com/api'
   const [quantity, setQuantity] = useState(1)
 
   const handleAddToCart = async () => {

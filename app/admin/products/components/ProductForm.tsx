@@ -56,7 +56,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
     { name: 'Beige', hex: '#F5F5DC' }
   ];
   const SIZE_OPTIONS = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'];
-  const API_BASE: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  const API_BASE: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_API_URL || 'https://clothing-website-backend-g7te.onrender.com/api';
   const CLOUD_NAME: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || '';
   const UPLOAD_PRESET: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || '';
   

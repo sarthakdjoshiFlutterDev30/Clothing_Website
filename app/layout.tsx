@@ -20,7 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <meta httpEquiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' http://localhost:5000; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; frame-src 'none';" />
+        <meta httpEquiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://clothing-website-backend-g7te.onrender.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; frame-src 'none';" />
         <CartProvider>
         <header className="bg-white shadow-sm sticky top-0 z-50">
           <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -24,13 +24,13 @@ export default function AdminDashboard() {
       try {
         const token = localStorage.getItem('token');
         const [products, orders, users] = await Promise.all([
-          fetch('http://localhost:5000/api/products', {
+          fetch('https://clothing-website-backend-g7te.onrender.com/api/products', {
             headers: { Authorization: `Bearer ${token}` }
           }),
-          fetch('http://localhost:5000/api/orders', {
+          fetch('https://clothing-website-backend-g7te.onrender.com/api/orders', {
             headers: { Authorization: `Bearer ${token}` }
           }),
-          fetch('http://localhost:5000/api/users', {
+          fetch('https://clothing-website-backend-g7te.onrender.com/api/users', {
             headers: { Authorization: `Bearer ${token}` }
           })
         ]);

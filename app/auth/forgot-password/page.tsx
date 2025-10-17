@@ -16,7 +16,7 @@ export default function ForgotPassword() {
     setSuccess('')
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/forgotpassword', {
+      const response = await fetch('https://clothing-website-backend-g7te.onrender.com/api/auth/forgotpassword', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

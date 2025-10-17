@@ -86,7 +86,7 @@ export default function AdminProfile() {
         updateData.newPassword = formData.newPassword;
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/users/profile`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://clothing-website-backend-g7te.onrender.com/api'}/users/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

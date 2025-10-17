@@ -54,7 +54,7 @@ export default function ResetPassword() {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/auth/resetpassword/${token}`, {
+      const response = await fetch(`https://clothing-website-backend-g7te.onrender.com/api/auth/resetpassword/${token}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

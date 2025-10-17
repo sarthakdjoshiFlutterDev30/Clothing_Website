@@ -30,7 +30,7 @@ export default function Profile() {
   const [orders, setOrders] = useState<any[]>([])
   const [ordersLoading, setOrdersLoading] = useState(false)
   const router = useRouter()
-  const API_BASE: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
+  const API_BASE: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_API_URL || 'https://clothing-website-backend-g7te.onrender.com/api'
 
   useEffect(() => {
     const token = localStorage.getItem('token')

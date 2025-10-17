@@ -84,7 +84,7 @@ export default function Checkout() {
       const paymentInfo = { id: 'cod', status: 'pending', method: 'cash_on_delivery' }
       // Use real user token so order ties to the logged-in user
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-      const API_BASE: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
+      const API_BASE: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_API_URL || 'https://clothing-website-backend-g7te.onrender.com/api'
       const resp = await fetch(`${API_BASE}/orders`, {
         method: 'POST',
         headers: {
@@ -127,7 +127,7 @@ export default function Checkout() {
       }
       const paymentInfo = { id: 'card', status: 'paid', method: 'card' }
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-      const API_BASE: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
+      const API_BASE: string = (globalThis as any)?.process?.env?.NEXT_PUBLIC_API_URL || 'https://clothing-website-backend-g7te.onrender.com/api'
       const resp = await fetch(`${API_BASE}/orders`, {
         method: 'POST',
         headers: {

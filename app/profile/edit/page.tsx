@@ -31,7 +31,7 @@ export default function EditProfile() {
           setLoading(false)
           return
         }
-        const res = await fetch('http://localhost:5000/api/auth/me', {
+        const res = await fetch('https://clothing-website-backend-g7te.onrender.com/api/auth/me', {
           headers: { Authorization: `Bearer ${token}` }
         })
         const json = await res.json()
@@ -61,7 +61,7 @@ export default function EditProfile() {
     setSuccess('')
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch('http://localhost:5000/api/auth/updatedetails', {
+      const res = await fetch('https://clothing-website-backend-g7te.onrender.com/api/auth/updatedetails', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
