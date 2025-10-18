@@ -142,6 +142,13 @@ export default function AdminOrders() {
     const doc = window.open('', '_blank', 'width=900,height=700');
     if (!doc) return;
 
+    // Get store settings from localStorage or use defaults
+    const storeSettings = JSON.parse(localStorage.getItem('storeSettings') || JSON.stringify({
+      siteName: 'Goodluck Fashion',
+      address: '123 Fashion Street, Mumbai, MH 400001, India',
+      gstNumber: 'GSTIN: 22AAAAA0000A1Z5'
+    }));
+
     const styles = `
       <style>
         * { box-sizing: border-box; }
@@ -185,8 +192,8 @@ export default function AdminOrders() {
       <body>
         <div class="header">
           <div>
-            <div class="brand">${escapeHtml(SHOP_NAME)}</div>
-            <div class="shop">${escapeHtml(SHOP_ADDRESS)}\n${escapeHtml(SHOP_GST)}</div>
+            <div class="brand">${escapeHtml(storeSettings.siteName)}</div>
+            <div class="shop">${escapeHtml(storeSettings.address)}\n${escapeHtml(storeSettings.gstNumber)}</div>
           </div>
           <div class="meta">
             <div><strong>Order ID:</strong> ${String(order._id)}</div>
@@ -253,6 +260,12 @@ export default function AdminOrders() {
           </table>
         </div>
 
+        <div class="section" style="margin-top: 24px; text-align: center;">
+          <div style="font-size: 11px; color: #666; font-style: italic;">
+            This invoice has been generated electronically and is valid without a signature or seal.
+          </div>
+        </div>
+
         <script>
           window.onload = () => { window.print(); setTimeout(() => window.close(), 300); };
         </script>
@@ -284,7 +297,6 @@ export default function AdminOrders() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                   </tr>
                 </thead>
@@ -311,15 +323,6 @@ export default function AdminOrders() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {formatINR(order.totalPrice)}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                            ${order.orderStatus === 'Delivered' ? 'bg-green-100 text-green-800' : 
-                              order.orderStatus === 'Shipped' ? 'bg-blue-100 text-blue-800' : 
-                              order.orderStatus === 'Processing' ? 'bg-yellow-100 text-yellow-800' : 
-                              'bg-gray-100 text-gray-800'}`}>
-                            {order.orderStatus}
-                          </span>
-                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex items-center gap-3">
                             <button
@@ -344,7 +347,7 @@ export default function AdminOrders() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
+                      <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
                         No orders found
                       </td>
                     </tr>
@@ -365,13 +368,6 @@ export default function AdminOrders() {
                     <div className="text-xs text-gray-500">Order</div>
                     <div className="font-mono text-sm text-gray-900 break-all">{order._id}</div>
                   </div>
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full h-6 items-center 
-                    ${order.orderStatus === 'Delivered' ? 'bg-green-100 text-green-800' : 
-                      order.orderStatus === 'Shipped' ? 'bg-blue-100 text-blue-800' : 
-                      order.orderStatus === 'Processing' ? 'bg-yellow-100 text-yellow-800' : 
-                      'bg-gray-100 text-gray-800'}`}>
-                    {order.orderStatus}
-                  </span>
                 </div>
                 <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
                   <div>
@@ -452,16 +448,6 @@ export default function AdminOrders() {
                   <div className="font-mono text-sm text-gray-900 break-all">{selectedOrder._id}</div>
                   <div className="text-sm text-gray-500 mt-4">Placed On</div>
                   <div className="text-gray-900">{new Date(selectedOrder.createdAt).toLocaleString()}</div>
-                  <div className="text-sm text-gray-500 mt-4">Status</div>
-                  <div>
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                      ${selectedOrder.orderStatus === 'Delivered' ? 'bg-green-100 text-green-800' : 
-                        selectedOrder.orderStatus === 'Shipped' ? 'bg-blue-100 text-blue-800' : 
-                        selectedOrder.orderStatus === 'Processing' ? 'bg-yellow-100 text-yellow-800' : 
-                        'bg-gray-100 text-gray-800'}`}>
-                      {selectedOrder.orderStatus}
-                    </span>
-                  </div>
                 </div>
                 <div className="space-y-2">
                   <div className="text-sm text-gray-500">Customer</div>
@@ -479,8 +465,6 @@ export default function AdminOrders() {
                   <div className="text-gray-900">
                     <div className="flex flex-col">
                       <span>Method: {selectedOrder?.paymentInfo?.method || 'N/A'}</span>
-                      <span>Status: {selectedOrder?.paymentInfo?.status || 'N/A'}</span>
-                      <span>ID: {selectedOrder?.paymentInfo?.id || 'N/A'}</span>
                     </div>
                   </div>
                 </div>

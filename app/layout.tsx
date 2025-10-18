@@ -4,6 +4,7 @@ import './globals.css'
 import Link from 'next/link'
 import { CartProvider } from './context/CartContext'
 import CartIcon from './components/CartIcon'
+import MaintenanceMode from './components/MaintenanceMode'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -22,6 +23,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <meta httpEquiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://clothing-website-backend-g7te.onrender.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; frame-src 'none';" />
         <CartProvider>
+        <MaintenanceMode />
         <header className="bg-white shadow-sm sticky top-0 z-50">
           <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">

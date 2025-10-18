@@ -320,3 +320,8 @@ body {
     transform: translateZ(0);
   }
 }
+
+/* Custom label styling to ensure dark text */
+.label-dark {
+  color: rgb(17, 24, 39) !important;
+}

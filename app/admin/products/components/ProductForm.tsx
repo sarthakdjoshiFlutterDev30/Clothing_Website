@@ -358,7 +358,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
       )}
 
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700">Product Name</label>
+        <label htmlFor="name" className="block text-sm font-medium" style={{color: '#000000'}}>Product Name</label>
         <input
           type="text"
           name="name"
@@ -366,13 +366,13 @@ export default function ProductForm({ productId }: ProductFormProps) {
           required
           value={formData.name}
           onChange={handleInputChange}
-          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+          className="mt-1 block w-full border border-gray-300 text-gray-900 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
         />
       </div>
 
       <div className="grid grid-cols-2 gap-6">
         <div>
-          <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category</label>
+          <label htmlFor="category" className="block text-sm font-medium" style={{color: '#000000'}}>Category</label>
           <select
             name="category"
             id="category"
@@ -388,7 +388,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
           </select>
         </div>
         <div>
-          <label htmlFor="subcategory" className="block text-sm font-medium text-gray-700">Subcategory</label>
+          <label htmlFor="subcategory" className="block text-sm font-medium" style={{color: '#000000'}}>Subcategory</label>
           <select
             name="subcategory"
             id="subcategory"
@@ -407,7 +407,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
       </div>
       <div className="grid grid-cols-2 gap-6">
         <div>
-          <label htmlFor="originalPrice" className="block text-sm font-medium text-gray-700">Original Price</label>
+          <label htmlFor="originalPrice" className="block text-sm font-medium" style={{color: '#000000'}}>Original Price</label>
           <input
             type="number"
             name="originalPrice"
@@ -421,7 +421,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
           />
         </div>
         <div>
-          <label htmlFor="discount" className="block text-sm font-medium text-gray-700">Discount (%)</label>
+          <label htmlFor="discount" className="block text-sm font-medium" style={{color: '#000000'}}>Discount (%)</label>
           <input
             type="number"
             name="discount"
@@ -436,7 +436,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
       </div>
 
       <div>
-        <label htmlFor="brand" className="block text-sm font-medium text-gray-700">Brand</label>
+        <label htmlFor="brand" className="block text-sm font-medium" style={{color: '#000000'}}>Brand</label>
         <input
           type="text"
           name="brand"
@@ -448,7 +448,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
       </div>
 
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
+        <label htmlFor="description" className="block text-sm font-medium" style={{color: '#000000'}}>Description</label>
         <textarea
           name="description"
           id="description"
@@ -462,7 +462,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
 
       <div className="grid grid-cols-2 gap-6">
         <div>
-          <label htmlFor="price" className="block text-sm font-medium text-gray-700">Price</label>
+          <label htmlFor="price" className="block text-sm font-medium" style={{color: '#000000'}}>Price</label>
           <input
             type="number"
             name="price"
@@ -477,7 +477,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
         </div>
 
         <div>
-          <label htmlFor="stock" className="block text-sm font-medium text-gray-700">Stock</label>
+          <label htmlFor="stock" className="block text-sm font-medium" style={{color: '#000000'}}>Stock</label>
           <input
             type="number"
             name="stock"
@@ -496,7 +496,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
       {/* Removed Active toggle UI */}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Sizes</label>
+        <label className="block text-sm font-medium" style={{color: '#000000'}}>Sizes</label>
         <div className="space-y-2 mt-2">
           {(formData.sizes || []).map((s, i) => (
             <div key={i} className="grid grid-cols-3 gap-4 items-end">
@@ -519,7 +519,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Colors</label>
+        <label className="block text-sm font-medium" style={{color: '#000000'}}>Colors</label>
         <div className="mt-3 grid grid-cols-6 gap-3">
           {COLOR_OPTIONS.map(opt => (
             <button
@@ -551,11 +551,11 @@ export default function ProductForm({ productId }: ProductFormProps) {
       
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Shipping Info</label>
+        <label className="block text-sm font-medium" style={{color: '#000000'}}>Shipping Info</label>
         <div className="grid grid-cols-2 gap-6 mt-2">
           <div className="flex items-center space-x-2">
             <input id="freeShipping" type="checkbox" checked={!!formData.shippingInfo?.freeShipping} onChange={(e) => setFormData(prev => ({ ...prev, shippingInfo: { ...(prev.shippingInfo || { estimatedDelivery: '' }), freeShipping: e.target.checked } }))} className="h-4 w-4" />
-            <label htmlFor="freeShipping" className="text-sm font-medium text-gray-700">Free Shipping</label>
+            <label htmlFor="freeShipping" className="text-sm font-medium" style={{color: '#000000'}}>Free Shipping</label>
           </div>
           <div>
             <input type="text" placeholder="Estimated delivery" value={formData.shippingInfo?.estimatedDelivery || ''} onChange={(e) => setFormData(prev => ({ ...prev, shippingInfo: { ...(prev.shippingInfo || { freeShipping: false }), estimatedDelivery: e.target.value } }))} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3" />
@@ -564,7 +564,7 @@ export default function ProductForm({ productId }: ProductFormProps) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Product Images</label>
+        <label className="block text-sm font-medium" style={{color: '#000000'}}>Product Images</label>
         <div className="mt-2">
           <input
             type="file"
