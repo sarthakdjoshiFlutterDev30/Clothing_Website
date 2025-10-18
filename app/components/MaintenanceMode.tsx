@@ -111,7 +111,7 @@ export default function MaintenanceMode() {
           </div>
           
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-3">What's happening?</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">What&apos;s happening?</h2>
             <ul className="text-sm text-gray-600 space-y-2 text-left">
               <li className="flex items-center">
                 <svg className="w-4 h-4 text-orange-500 mr-2" fill="currentColor" viewBox="0 0 20 20">

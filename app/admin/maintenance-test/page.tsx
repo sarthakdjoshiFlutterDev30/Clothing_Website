@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 
 export default function MaintenanceTest() {
-  const [maintenanceStatus, setMaintenanceStatus] = useState(null);
+  const [maintenanceStatus, setMaintenanceStatus] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,7 +19,7 @@ export default function MaintenanceTest() {
         setMaintenanceStatus(data);
       } catch (error) {
         console.error('Error checking maintenance:', error);
-        setMaintenanceStatus({ error: error.message });
+        setMaintenanceStatus({ error: error instanceof Error ? error.message : 'An unknown error occurred' });
       } finally {
         setLoading(false);
       }
@@ -83,7 +83,7 @@ export default function MaintenanceTest() {
       
     } catch (error) {
       console.error('Error toggling maintenance:', error);
-      alert('Error: ' + error.message);
+      alert('Error: ' + (error instanceof Error ? error.message : 'An unknown error occurred'));
     }
   };
 
@@ -111,8 +111,8 @@ export default function MaintenanceTest() {
         <div className="text-sm text-gray-600">
           <p><strong>Instructions:</strong></p>
           <ol className="list-decimal list-inside space-y-1 mt-2">
-            <li>Make sure you're logged in as admin</li>
-            <li>Click "Toggle Maintenance Mode" above</li>
+            <li>Make sure you&apos;re logged in as admin</li>
+            <li>Click &quot;Toggle Maintenance Mode&quot; above</li>
             <li>Open a new tab and go to the main site</li>
             <li>You should see the maintenance page if enabled</li>
           </ol>

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 export default function AuthTest() {
-  const [authStatus, setAuthStatus] = useState(null);
+  const [authStatus, setAuthStatus] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
   const checkAuth = async () => {
@@ -46,7 +46,7 @@ export default function AuthTest() {
       }
     } catch (error) {
       console.error('Auth test error:', error);
-      setAuthStatus({ error: error.message });
+      setAuthStatus({ error: error instanceof Error ? error.message : 'An unknown error occurred' });
     } finally {
       setLoading(false);
     }
@@ -119,7 +119,7 @@ export default function AuthTest() {
       
     } catch (error) {
       console.error('Toggle error:', error);
-      alert('Error: ' + error.message);
+      alert('Error: ' + (error instanceof Error ? error.message : 'An unknown error occurred'));
     } finally {
       setLoading(false);
     }
@@ -161,9 +161,9 @@ export default function AuthTest() {
       <div className="mt-6 text-sm text-gray-600">
         <h3 className="font-semibold mb-2">Instructions:</h3>
         <ol className="list-decimal list-inside space-y-1">
-          <li>Make sure you're logged in as admin at <code>/admin/login</code></li>
-          <li>Click "Test Authentication" to verify your token works</li>
-          <li>If authentication works, click "Toggle Maintenance Mode"</li>
+          <li>Make sure you&apos;re logged in as admin at <code>/admin/login</code></li>
+          <li>Click &quot;Test Authentication&quot; to verify your token works</li>
+          <li>If authentication works, click &quot;Toggle Maintenance Mode&quot;</li>
           <li>Open a new tab and go to the main site to see the maintenance page</li>
           <li>Check browser console (F12) for detailed logs</li>
         </ol>
